@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strudel Audio Test</title>
+    <script src="https://unpkg.com/@strudel/embed@latest"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: #eee;
+        }
+        h1 { color: #4ade80; }
+        .test-section {
+            background: #16213e;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            border: 2px solid #4ade80;
+        }
+        button {
+            background: #4ade80;
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #22c55e;
+        }
+        #status {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background: #10b981; color: white; }
+        .error { background: #ef4444; color: white; }
+        .info { background: #3b82f6; color: white; }
+        code {
+            background: #0f172a;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #fbbf24;
+        }
+        strudel-editor {
+            height: 300px;
+            display: block;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎵 Strudel Audio Test Page</h1>
+    <p>This page tests if your browser can play Strudel audio.</p>
+
+    <div class="test-section">
+        <h2>Test 1: Simple Button Click</h2>
+        <p>Click this button to test basic audio:</p>
+        <button onclick="testSimpleAudio()">🔊 Test Audio</button>
+        <div id="status"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Strudel Editor</h2>
+        <p>The code is pre-loaded. Click <strong>inside the editor</strong> then press <code>Ctrl+Enter</code>:</p>
+        <strudel-editor id="editor" mode="editor">sound("bd")</strudel-editor>
+        <p><strong>Instructions:</strong></p>
+        <ol>
+            <li>Click inside the black editor area above</li>
+            <li>Press <code>Ctrl+Enter</code> (or <code>Cmd+Enter</code> on Mac)</li>
+            <li>You should hear a kick drum sound</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Console Test</h2>
+        <p>Open the browser console (press <code>F12</code>) and paste this:</p>
+        <code>sound("bd").cpm(30)</code>
+        <p>Then press Enter. You should hear a kick drum every 2 seconds.</p>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 Diagnostic Info</h2>
+        <div id="diagnostics"></div>
+    </div>
+
+    <script>
+        // Test simple audio
+        async function testSimpleAudio() {
+            const status = document.getElementById('status');
+            status.className = 'info';
+            status.textContent = '🔄 Testing audio...';
+
+            try {
+                // Try to play using Strudel's global functions
+                if (typeof sound !== 'undefined') {
+                    sound("bd").cpm(30);
+                    status.className = 'success';
+                    status.textContent = '✅ Audio test sent! You should hear a kick drum repeating. If you don\'t hear anything, check your volume.';
+                } else {
+                    status.className = 'error';
+                    status.textContent = '❌ Strudel not loaded yet. Wait a moment and try again.';
+                }
+            } catch (error) {
+                status.className = 'error';
+                status.textContent = '❌ Error: ' + error.message;
+                console.error('Audio test error:', error);
+            }
+        }
+
+        // Display diagnostics
+        window.addEventListener('DOMContentLoaded', () => {
+            const diag = document.getElementById('diagnostics');
+            
+            setTimeout(() => {
+                let info = '<strong>Browser:</strong> ' + navigator.userAgent + '<br><br>';
+                info += '<strong>Strudel Functions Available:</strong><br>';
+                info += '- sound(): ' + (typeof sound !== 'undefined' ? '✅ Yes' : '❌ No') + '<br>';
+                info += '- s(): ' + (typeof s !== 'undefined' ? '✅ Yes' : '❌ No') + '<br>';
+                info += '- note(): ' + (typeof note !== 'undefined' ? '✅ Yes' : '❌ No') + '<br><br>';
+                
+                const editor = document.getElementById('editor');
+                info += '<strong>Editor Element:</strong> ' + (editor ? '✅ Found' : '❌ Not found') + '<br>';
+                
+                diag.innerHTML = info;
+            }, 2000);
+        });
+
+        // Helpful console messages
+        console.log('%c🎵 Strudel Audio Test Page', 'font-size: 20px; color: #4ade80; font-weight: bold');
+        console.log('%cTry these commands:', 'font-size: 14px; color: #60a5fa');
+        console.log('sound("bd")                    // Single kick');
+        console.log('sound("bd").cpm(30)            // Repeating kick');
+        console.log('s("bd sd hh sd")               // Drum pattern');
+        console.log('note("c3").s("sawtooth")       // Synth note');
+    </script>
+</body>
+</html>
+

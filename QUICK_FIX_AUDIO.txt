@@ -1,0 +1,172 @@
+╔══════════════════════════════════════════════════════════════════╗
+║                   🎵 QUICK AUDIO FIX GUIDE                       ║
+╚══════════════════════════════════════════════════════════════════╝
+
+Issue 1: NO AUDIO ❌
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SOLUTION - Try this test:
+
+1. Open browser: http://localhost:3000
+2. Press F5 to refresh
+3. Click in the Strudel editor (right side with code)
+4. Type this exact code:
+   
+   s("bd").fast(2)
+
+5. Press Ctrl+Enter OR click Play ▶️ button
+6. You should hear a kick drum!
+
+If you hear sound → Audio works! ✅
+If no sound → Try these:
+  • Check computer volume
+  • Try different browser (Chrome recommended)
+  • Check browser console (F12) for errors
+  • Allow audio in browser permissions
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Issue 2: WHERE TO TYPE PROMPTS? ❌
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+IMPORTANT: Prompts DON'T go in the webpage!
+
+                  ❌ NOT HERE ❌
+     (Web browser is for viewing/listening only)
+
+                  ✅ TYPE HERE ✅
+            (In Terminal 2 - see below)
+
+
+CORRECT SETUP:
+
+Terminal Window 1:
+┌─────────────────────────────────────────┐
+│ $ npm start                             │
+│ 🎵 Strudel Server Running               │
+│ http://localhost:3000                   │
+│                                         │
+│ [Leave this running]                    │
+└─────────────────────────────────────────┘
+
+Terminal Window 2:
+┌─────────────────────────────────────────┐
+│ $ python3 test_mock_mode.py            │
+│                                         │
+│ 🎹 [MOCK] > create a techno track      │← TYPE PROMPTS HERE!
+│ 🎹 [MOCK] > add more bass              │← TYPE PROMPTS HERE!
+│ 🎹 [MOCK] > make it faster             │← TYPE PROMPTS HERE!
+│                                         │
+└─────────────────────────────────────────┘
+
+Browser Window:
+┌─────────────────────────────────────────┐
+│ http://localhost:3000                   │
+│                                         │
+│ [Left side: View generated code]        │
+│ [Right side: Strudel player]            │
+│ [Click Play ▶️ to hear music]           │
+│                                         │
+│ You CAN edit code here manually!       │
+└─────────────────────────────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+COMPLETE WORKFLOW:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Step 1: Start Server (Terminal 1)
+  $ cd /home/odoo/strudel-ai-live-coding
+  $ npm start
+
+Step 2: Start Mock Agent (Terminal 2)
+  $ cd /home/odoo/strudel-ai-live-coding
+  $ python3 test_mock_mode.py
+
+Step 3: Open Browser
+  → Go to: http://localhost:3000
+  → Refresh page (F5)
+
+Step 4: Type Prompts in Terminal 2
+  🎹 [MOCK] > create a minimal techno track
+  [Wait for code to generate]
+
+Step 5: Play Music in Browser
+  → Click Play ▶️ button
+  → Hear the music! 🎵
+
+Step 6: Update the Music
+  → Go back to Terminal 2
+  🎹 [MOCK] > add a dark bassline
+  → Browser auto-updates
+  → Music changes! 🎵
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ALTERNATIVE: MANUAL EDITING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Don't want to use AI? Edit code directly!
+
+1. Open: http://localhost:3000
+2. Click in the Strudel editor (right panel)
+3. Type/edit Strudel code:
+
+   s("bd sd bd sd").fast(2)
+
+4. Press Ctrl+Enter or click Play ▶️
+5. Hear your creation! 🎵
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TEST AUDIO RIGHT NOW:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Quick 30-second test:
+
+1. Browser: http://localhost:3000 (refresh with F5)
+2. Click in code editor on right side
+3. Type: s("bd hh sd hh")
+4. Click Play ▶️
+5. Hear drums? → ✅ Audio works!
+
+If no sound:
+  • Check volume
+  • Try Chrome browser
+  • Press F12, check Console tab
+  • Look for error messages
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+COMMON MISTAKES:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ Typing prompts in the browser
+   ✅ Type in Terminal 2 instead
+
+❌ Not clicking Play button
+   ✅ Must click Play ▶️ to hear audio
+
+❌ Forgetting to start mock mode
+   ✅ Run: python3 test_mock_mode.py
+
+❌ Wrong terminal window
+   ✅ Server in Terminal 1, Agent in Terminal 2
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SUMMARY:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Prompts: Terminal 2 (python3 test_mock_mode.py)
+✅ Server: Terminal 1 (npm start)
+✅ Browser: http://localhost:3000 (view & play)
+✅ Audio: Click Play ▶️ in browser
+✅ Edit: Can edit code directly in browser too!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Need more help? Read: WEB_INTERFACE_GUIDE.md
+
+Happy live coding! 🎵✨
+

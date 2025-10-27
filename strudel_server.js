@@ -9,7 +9,7 @@ const path = require('path');
 const fs = require('fs');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
 // Middleware
 app.use(cors());
@@ -21,6 +21,10 @@ let currentCode = `// Welcome to Strudel AI Live Coding
 // Waiting for AI to generate code...
 
 s("bd sd").fast(2)`;
+
+// Store prompts from web interface
+let promptQueue = [];
+let currentPrompt = null;
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -53,6 +57,46 @@ app.post('/update', (req, res) => {
     });
 });
 
+// Submit prompt from web interface
+app.post('/prompt', (req, res) => {
+    const { prompt } = req.body;
+    
+    if (!prompt || prompt.trim() === '') {
+        return res.status(400).json({ error: 'Prompt is required' });
+    }
+    
+    promptQueue.push({
+        prompt: prompt.trim(),
+        timestamp: new Date().toISOString()
+    });
+    
+    console.log(`\n💬 New prompt received from web: "${prompt.trim()}"`);
+    console.log(`📊 Queue length: ${promptQueue.length}`);
+    
+    res.json({ 
+        success: true, 
+        message: 'Prompt received',
+        queueLength: promptQueue.length
+    });
+});
+
+// Get next prompt (for Python agent to poll)
+app.get('/get-prompt', (req, res) => {
+    if (promptQueue.length > 0) {
+        currentPrompt = promptQueue.shift();
+        console.log(`\n📤 Sending prompt to agent: "${currentPrompt.prompt}"`);
+        res.json({ 
+            hasPrompt: true,
+            prompt: currentPrompt.prompt,
+            timestamp: currentPrompt.timestamp
+        });
+    } else {
+        res.json({ 
+            hasPrompt: false 
+        });
+    }
+});
+
 // Serve the main HTML page
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -67,12 +111,15 @@ app.listen(PORT, () => {
 ╚════════════════════════════════════════════════╝
 
 Endpoints:
-  GET  /health  - Health check
-  GET  /code    - Get current code
-  POST /update  - Update code
-  GET  /        - Web interface
+  GET  /health      - Health check
+  GET  /code        - Get current code
+  POST /update      - Update code
+  POST /prompt      - Submit AI prompt (from web)
+  GET  /get-prompt  - Get next prompt (for AI agent)
+  GET  /            - Web interface
 
 Open http://localhost:${PORT} in your browser to see the live coding interface!
+You can now send prompts from the web interface! 🎉
     `);
 });
 
