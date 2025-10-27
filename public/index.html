@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strudel AI Live Coding</title>
+    <script src="https://unpkg.com/@strudel/embed@latest"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .status-bar {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .code-panel {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            padding: 20px;
+            overflow: auto;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .code-panel h2 {
+            margin-bottom: 15px;
+            color: #fbbf24;
+        }
+
+        #code-display {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-height: 200px;
+        }
+
+        .strudel-panel {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .strudel-panel h2 {
+            margin-bottom: 15px;
+            color: #fbbf24;
+        }
+
+        #strudel-container {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-height: 300px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+        }
+
+        .btn-primary {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-secondary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+
+        .info-box {
+            background: rgba(59, 130, 246, 0.2);
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 5px;
+        }
+
+        .info-box h3 {
+            margin-bottom: 10px;
+            color: #60a5fa;
+        }
+
+        .info-box p {
+            font-size: 14px;
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        .prompt-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .prompt-section h3 {
+            margin-bottom: 10px;
+            color: #60a5fa;
+            font-size: 1em;
+        }
+
+        .prompt-section input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .prompt-section input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .prompt-hint {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 10px;
+        }
+
+        .prompt-hint code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        #audio-warning {
+            background: rgba(239, 68, 68, 0.2);
+            border-left: 4px solid #ef4444;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 5px;
+            display: none;
+        }
+
+        @keyframes flash {
+            0%, 100% { box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(251, 191, 36, 0.8), 0 8px 32px rgba(0, 0, 0, 0.3); }
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎵 Strudel AI Live Coding</h1>
+        <p>AI-powered generative music with Strudel</p>
+    </div>
+
+    <div class="status-bar">
+        <div class="status-indicator">
+            <div class="status-dot"></div>
+            <span id="status-text">Connected</span>
+        </div>
+        <div>
+            <span id="update-time">No updates yet</span>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="code-panel">
+            <h2>📝 Current Code</h2>
+            <div id="code-display">// Waiting for code...</div>
+            
+            <div id="audio-warning">
+                <strong>⚠️ Audio Issue?</strong><br>
+                Make sure to click the Play button and allow audio in your browser.
+                The first play might require user interaction.
+            </div>
+            
+            <div class="info-box">
+                <h3>💡 How to use</h3>
+                <p>
+                    <strong>1. Generate Code (Terminal):</strong><br>
+                    Run: <code>python3 test_mock_mode.py</code><br>
+                    Type prompts → Code appears AUTOMATICALLY! ✨<br><br>
+                    
+                    <strong>2. Code Auto-Loads:</strong><br>
+                    Code updates in BOTH panels automatically!<br>
+                    Left = Preview, Right = Strudel REPL ✅<br><br>
+                    
+                    <strong>3. Play Music:</strong><br>
+                    Click in the right panel (Strudel REPL)<br>
+                    Press <code>Ctrl+Enter</code> → 🎵 Music plays!<br><br>
+                    
+                    <strong>If auto-inject fails:</strong> Use "📥 Load Code" button
+                </p>
+            </div>
+        </div>
+
+        <div class="strudel-panel">
+            <h2>🎹 Strudel Player</h2>
+            <div id="strudel-container">
+                <strudel-repl 
+                    id="strudel-editor">
+                </strudel-repl>
+            </div>
+            
+            <div class="controls">
+                <button class="btn-primary" onclick="loadCodeToEditor()">📥 Load Code from Left Panel</button>
+                <button class="btn-primary" onclick="playCode()">▶️ Play</button>
+                <button class="btn-danger" onclick="stopCode()">⏹️ Stop</button>
+                <button class="btn-secondary" onclick="refreshCode()">🔄 Refresh</button>
+            </div>
+            
+            <div class="prompt-section">
+                <h3>💬 AI Prompt (Optional)</h3>
+                <input 
+                    type="text" 
+                    id="prompt-input" 
+                    placeholder="Type a prompt like: add more bass, make it faster..."
+                    onkeypress="handlePromptKeypress(event)">
+                <button class="btn-secondary" onclick="sendPrompt()">🚀 Send to AI Agent</button>
+                <p class="prompt-hint">
+                    Note: AI agent must be running in terminal. 
+                    Or use mock mode: <code>python3 test_mock_mode.py</code>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let strudelEditor;
+        let isPlaying = false;
+        let pollInterval;
+        let audioInitialized = false;
+
+        // Initialize Strudel editor
+        window.addEventListener('DOMContentLoaded', () => {
+            strudelEditor = document.getElementById('strudel-editor');
+            
+            console.log('🎵 Strudel editor element:', strudelEditor);
+            
+            // Set up mutation observer to watch for changes
+            if (strudelEditor) {
+                const observer = new MutationObserver((mutations) => {
+                    console.log('Strudel editor changed');
+                });
+                observer.observe(strudelEditor, { 
+                    attributes: true, 
+                    childList: true, 
+                    subtree: true 
+                });
+            }
+            
+            // Wait for Strudel to fully load and become ready
+            setTimeout(() => {
+                console.log('✅ Strudel editor ready');
+                console.log('Available properties:', Object.keys(strudelEditor));
+                console.log('Component defined:', customElements.get('strudel-repl'));
+                
+                // Start polling for code updates
+                startPolling();
+                
+                // Initial code fetch and set
+                fetchCode().then(() => {
+                    console.log('🎵 Initial code loaded');
+                });
+            }, 2000);
+        });
+
+        let lastCode = '';  // Track last code to detect changes
+        
+        // Fetch current code from server
+        async function fetchCode() {
+            try {
+                // Add cache-busting timestamp to prevent browser caching
+                const timestamp = new Date().getTime();
+                const response = await fetch(`http://localhost:3000/code?t=${timestamp}`, {
+                    cache: 'no-cache',
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                const data = await response.json();
+                
+                if (data.code) {
+                    // Debug: Show what we fetched
+                    console.log('📥 Fetched code length:', data.code.length, 'chars');
+                    console.log('📦 Last code length:', lastCode.length, 'chars');
+                    console.log('🔍 Are they same?', data.code === lastCode);
+                    
+                    // Only update if code changed
+                    if (data.code !== lastCode) {
+                        console.log('🔄 NEW CODE DETECTED! Updating...');
+                        console.log('Old code preview:', lastCode.substring(0, 50));
+                        console.log('New code preview:', data.code.substring(0, 50));
+                        lastCode = data.code;
+                        updateCode(data.code);
+                    } else {
+                        console.log('⏱️ Polling... (no changes)');
+                    }
+                } else {
+                    console.warn('⚠️ No code in response');
+                }
+            } catch (error) {
+                console.error('❌ Error fetching code:', error);
+                document.getElementById('status-text').textContent = 'Connection error';
+            }
+        }
+
+        // Update the displayed code and Strudel editor
+        async function updateCode(code) {
+            console.log('📝 Updating code display...');
+            
+            // Update code display
+            document.getElementById('code-display').textContent = code;
+            console.log('✅ Left panel updated with', code.length, 'characters');
+            
+            // Update Strudel REPL - DIRECT CodeMirror injection
+            if (strudelEditor) {
+                try {
+                    console.log('🎯 Attempting to inject code into Strudel REPL...');
+                    
+                    // Method 1: Try to find and update CodeMirror directly
+                    function injectCodeToCodeMirror() {
+                        try {
+                            // Strudel uses CodeMirror internally
+                            if (strudelEditor.shadowRoot) {
+                                // Look for CodeMirror in shadow DOM
+                                const cmEditor = strudelEditor.shadowRoot.querySelector('.cm-editor');
+                                if (cmEditor) {
+                                    // Get the CodeMirror view instance
+                                    const cmView = cmEditor._cm || cmEditor.cmView;
+                                    if (cmView) {
+                                        // Update using CodeMirror's API
+                                        cmView.dispatch({
+                                            changes: {
+                                                from: 0,
+                                                to: cmView.state.doc.length,
+                                                insert: code
+                                            }
+                                        });
+                                        console.log('✅ CodeMirror updated directly!');
+                                        return true;
+                                    }
+                                }
+                                
+                                // Try alternative: find the actual content editable area
+                                const contentArea = strudelEditor.shadowRoot.querySelector('.cm-content');
+                                if (contentArea) {
+                                    // Clear and set new content
+                                    contentArea.innerHTML = '';
+                                    const lines = code.split('\n');
+                                    lines.forEach((line, i) => {
+                                        const lineEl = document.createElement('div');
+                                        lineEl.className = 'cm-line';
+                                        lineEl.textContent = line || ' ';
+                                        contentArea.appendChild(lineEl);
+                                    });
+                                    
+                                    // Dispatch input event
+                                    contentArea.dispatchEvent(new Event('input', { bubbles: true }));
+                                    console.log('✅ CodeMirror content area updated!');
+                                    return true;
+                                }
+                            }
+                            return false;
+                        } catch (e) {
+                            console.log('⚠️ CodeMirror direct update failed:', e.message);
+                            return false;
+                        }
+                    }
+                    
+                    // Method 2: Try setCode method if available
+                    function trySetCodeMethod() {
+                        try {
+                            if (typeof strudelEditor.setCode === 'function') {
+                                strudelEditor.setCode(code);
+                                console.log('✅ setCode() method worked!');
+                                return true;
+                            }
+                            if (typeof strudelEditor.updateCode === 'function') {
+                                strudelEditor.updateCode(code);
+                                console.log('✅ updateCode() method worked!');
+                                return true;
+                            }
+                            return false;
+                        } catch (e) {
+                            return false;
+                        }
+                    }
+                    
+                    // Method 3: Fallback - use code attribute
+                    function tryCodeAttribute() {
+                        try {
+                            strudelEditor.setAttribute('code', code);
+                            strudelEditor.code = code;
+                            console.log('✅ Code attribute set');
+                            return true;
+                        } catch (e) {
+                            return false;
+                        }
+                    }
+                    
+                    // Try all methods in order
+                    let success = false;
+                    
+                    // Try CodeMirror first (most reliable)
+                    if (injectCodeToCodeMirror()) {
+                        success = true;
+                    }
+                    // Try setCode methods
+                    else if (trySetCodeMethod()) {
+                        success = true;
+                    }
+                    // Fallback to attribute
+                    else if (tryCodeAttribute()) {
+                        success = true;
+                    }
+                    
+                    if (success) {
+                        console.log('🎉 Code injected into Strudel REPL successfully!');
+                        console.log('👉 Now press Ctrl+Enter in the REPL to hear the music!');
+                        
+                        // Flash the Strudel panel to draw attention
+                        const strudelPanel = document.querySelector('.strudel-panel');
+                        if (strudelPanel) {
+                            strudelPanel.style.animation = 'flash 0.5s';
+                            setTimeout(() => {
+                                strudelPanel.style.animation = '';
+                            }, 500);
+                        }
+                    } else {
+                        console.log('⚠️ Auto-injection failed - use "Load Code" button instead');
+                    }
+                    
+                    // Auto-play if already playing
+                    if (isPlaying) {
+                        setTimeout(() => {
+                            playCode();
+                        }, 200);
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ Error updating Strudel code:', error);
+                    console.log('💡 Use the "📥 Load Code" button instead');
+                }
+            } else {
+                console.warn('⚠️ Strudel editor not initialized yet');
+            }
+            
+            // Update timestamp
+            const now = new Date();
+            document.getElementById('update-time').textContent = 
+                `Updated: ${now.toLocaleTimeString()}`;
+        }
+
+        // Poll for code updates
+        function startPolling() {
+            console.log('🔄 Starting polling for code updates (every 1 second)...');
+            pollInterval = setInterval(fetchCode, 1000); // Check every second
+        }
+
+        function stopPolling() {
+            if (pollInterval) {
+                clearInterval(pollInterval);
+            }
+        }
+
+        // Play the current code
+        function playCode() {
+            if (!strudelEditor) {
+                console.error('Strudel editor not found');
+                document.getElementById('audio-warning').style.display = 'block';
+                alert('Strudel editor not loaded yet. Please wait a moment and try again.');
+                return;
+            }
+
+            try {
+                // Try different methods that Strudel might use
+                if (typeof strudelEditor.evaluate === 'function') {
+                    strudelEditor.evaluate();
+                    console.log('Used evaluate() method');
+                } else if (typeof strudelEditor.play === 'function') {
+                    strudelEditor.play();
+                    console.log('Used play() method');
+                } else if (typeof strudelEditor.start === 'function') {
+                    strudelEditor.start();
+                    console.log('Used start() method');
+                } else {
+                    // Try to trigger it via keyboard event (Ctrl+Enter)
+                    const event = new KeyboardEvent('keydown', {
+                        key: 'Enter',
+                        code: 'Enter',
+                        ctrlKey: true,
+                        bubbles: true
+                    });
+                    strudelEditor.dispatchEvent(event);
+                    console.log('Triggered via keyboard event');
+                }
+                
+                isPlaying = true;
+                audioInitialized = true;
+                document.getElementById('status-text').textContent = 'Playing 🎵';
+                document.getElementById('audio-warning').style.display = 'none';
+                console.log('Playback started successfully');
+            } catch (error) {
+                console.error('Error starting playback:', error);
+                console.error('Available methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(strudelEditor)));
+                document.getElementById('audio-warning').style.display = 'block';
+                document.getElementById('status-text').textContent = 'Error: ' + error.message;
+                
+                // Show helpful message
+                alert('Cannot start playback automatically.\n\n' +
+                      'Try this instead:\n' +
+                      '1. Click in the Strudel editor (right panel)\n' +
+                      '2. Press Ctrl+Enter to play\n\n' +
+                      'Or edit the code directly in the editor and press Ctrl+Enter.');
+            }
+        }
+
+        // Stop playback
+        function stopCode() {
+            if (strudelEditor) {
+                try {
+                    if (typeof strudelEditor.stop === 'function') {
+                        strudelEditor.stop();
+                    } else if (typeof strudelEditor.pause === 'function') {
+                        strudelEditor.pause();
+                    } else {
+                        // Try keyboard shortcut (Ctrl+.)
+                        const event = new KeyboardEvent('keydown', {
+                            key: '.',
+                            code: 'Period',
+                            ctrlKey: true,
+                            bubbles: true
+                        });
+                        strudelEditor.dispatchEvent(event);
+                    }
+                    isPlaying = false;
+                    document.getElementById('status-text').textContent = 'Stopped';
+                    console.log('Playback stopped');
+                } catch (error) {
+                    console.error('Error stopping playback:', error);
+                }
+            }
+        }
+
+        // Refresh code from server
+        function refreshCode() {
+            fetchCode();
+        }
+
+        // Load code into editor manually
+        function loadCodeToEditor() {
+            const code = document.getElementById('code-display').textContent;
+            
+            if (!code || code === '// Waiting for code...') {
+                alert('No code available yet. Generate code in Terminal 2 first!');
+                return;
+            }
+            
+            // Try to copy to clipboard
+            navigator.clipboard.writeText(code).then(() => {
+                alert('✅ Code copied to clipboard!\n\n' +
+                      'Now:\n' +
+                      '1. Click in the Strudel editor (right panel)\n' +
+                      '2. Press Ctrl+A to select all\n' +
+                      '3. Press Ctrl+V to paste\n' +
+                      '4. Press Ctrl+Enter to play! 🎵');
+            }).catch(() => {
+                // Fallback if clipboard API doesn't work
+                const textarea = document.createElement('textarea');
+                textarea.value = code;
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    alert('✅ Code copied to clipboard!\n\n' +
+                          'Now:\n' +
+                          '1. Click in the Strudel editor\n' +
+                          '2. Press Ctrl+A, then Ctrl+V\n' +
+                          '3. Press Ctrl+Enter to play!');
+                } catch (err) {
+                    alert('Could not copy automatically.\n\n' +
+                          'Please manually copy the code from the left panel.');
+                }
+                document.body.removeChild(textarea);
+            });
+        }
+
+        // Handle prompt input
+        async function sendPrompt() {
+            const input = document.getElementById('prompt-input');
+            const prompt = input.value.trim();
+            
+            if (!prompt) {
+                alert('Please enter a prompt first!');
+                return;
+            }
+            
+            // Note: This would need a backend endpoint to forward to the AI agent
+            // For now, just show a message
+            alert('To use AI prompts, run the agent in terminal:\n\n' +
+                  '  python3 test_mock_mode.py\n\n' +
+                  'Then type your prompts there. The code will update here automatically!');
+            
+            input.value = '';
+        }
+
+        function handlePromptKeypress(event) {
+            if (event.key === 'Enter') {
+                sendPrompt();
+            }
+        }
+
+        // Add helpful console messages
+        console.log('%c🎵 Strudel AI Live Coding', 'font-size: 20px; color: #60a5fa; font-weight: bold;');
+        console.log('%cTo generate AI code:', 'font-size: 14px; color: #10b981;');
+        console.log('  1. Run in terminal: python3 test_mock_mode.py');
+        console.log('  2. Type prompts in terminal');
+        console.log('  3. Watch code update here automatically!');
+        console.log('%cOr edit code directly in the player above ↑', 'font-size: 14px; color: #fbbf24;');
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            stopPolling();
+            if (strudelEditor) {
+                strudelEditor.stop();
+            }
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,27 @@
+{
+  "name": "strudel-ai-live-coding",
+  "version": "1.0.0",
+  "description": "AI-powered live coding system for Strudel music generation",
+  "main": "strudel_server.js",
+  "scripts": {
+    "start": "node strudel_server.js",
+    "dev": "nodemon strudel_server.js"
+  },
+  "keywords": [
+    "strudel",
+    "live-coding",
+    "ai",
+    "music",
+    "generative"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
+

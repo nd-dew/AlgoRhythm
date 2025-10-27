@@ -1,0 +1,5 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'build', '-t', 'gcr.io/qwiklabs-gcp-00-acb9fdb9ec26/strudel-ai-live-coding', '.' ]
+images:
+- 'gcr.io/qwiklabs-gcp-00-acb9fdb9ec26/strudel-ai-live-coding'
