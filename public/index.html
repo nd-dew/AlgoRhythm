@@ -124,7 +124,6 @@
             background: rgba(0, 0, 0, 0.3);
             border-radius: 8px;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            min-height: 300px;
         }
 
         .controls {
@@ -284,8 +283,15 @@
 
     <div class="main-container">
         <div class="code-panel">
-            <h2>📝 Current Code</h2>
-            <div id="code-display">// Waiting for code...</div>
+            <h2>💬 Prompt</h2>
+            <div class="prompt-section">
+                <input
+                    type="text"
+                    id="prompt-input"
+                    placeholder="Type a prompt like: add more bass, make it faster..."
+                    onkeypress="handlePromptKeypress(event)">
+                <button class="btn-secondary" onclick="sendPrompt()">🚀 Send to AI Agent</button>
+            </div>
             
             <div id="audio-warning">
                 <strong>⚠️ Audio Issue?</strong><br>
@@ -307,8 +313,6 @@
                     <strong>3. Play Music:</strong><br>
                     Click in the right panel (Strudel REPL)<br>
                     Press <code>Ctrl+Enter</code> → 🎵 Music plays!<br><br>
-                    
-                    <strong>If auto-inject fails:</strong> Use "📥 Load Code" button
                 </p>
             </div>
         </div>
@@ -316,30 +320,7 @@
         <div class="strudel-panel">
             <h2>🎹 Strudel Player</h2>
             <div id="strudel-container">
-                <strudel-repl 
-                    id="strudel-editor">
-                </strudel-repl>
-            </div>
-            
-            <div class="controls">
-                <button class="btn-primary" onclick="loadCodeToEditor()">📥 Load Code from Left Panel</button>
-                <button class="btn-primary" onclick="playCode()">▶️ Play</button>
-                <button class="btn-danger" onclick="stopCode()">⏹️ Stop</button>
-                <button class="btn-secondary" onclick="refreshCode()">🔄 Refresh</button>
-            </div>
-            
-            <div class="prompt-section">
-                <h3>💬 AI Prompt (Optional)</h3>
-                <input 
-                    type="text" 
-                    id="prompt-input" 
-                    placeholder="Type a prompt like: add more bass, make it faster..."
-                    onkeypress="handlePromptKeypress(event)">
-                <button class="btn-secondary" onclick="sendPrompt()">🚀 Send to AI Agent</button>
-                <p class="prompt-hint">
-                    Note: AI agent must be running in terminal. 
-                    Or use mock mode: <code>python3 test_mock_mode.py</code>
-                </p>
+                <iframe src="https://strudel.cc" width="100%" height="100%"></iframe>
             </div>
         </div>
     </div>
@@ -373,10 +354,7 @@
                 console.log('✅ Strudel editor ready');
                 console.log('Available properties:', Object.keys(strudelEditor));
                 console.log('Component defined:', customElements.get('strudel-repl'));
-                
-                // Start polling for code updates
-                startPolling();
-                
+
                 // Initial code fetch and set
                 fetchCode().then(() => {
                     console.log('🎵 Initial code loaded');
@@ -560,7 +538,6 @@
                     
                 } catch (error) {
                     console.error('❌ Error updating Strudel code:', error);
-                    console.log('💡 Use the "📥 Load Code" button instead');
                 }
             } else {
                 console.warn('⚠️ Strudel editor not initialized yet');
@@ -572,149 +549,10 @@
                 `Updated: ${now.toLocaleTimeString()}`;
         }
 
-        // Poll for code updates
-        function startPolling() {
-            console.log('🔄 Starting polling for code updates (every 1 second)...');
-            pollInterval = setInterval(fetchCode, 1000); // Check every second
-        }
-
-        function stopPolling() {
-            if (pollInterval) {
-                clearInterval(pollInterval);
-            }
-        }
-
-        // Play the current code
-        function playCode() {
-            if (!strudelEditor) {
-                console.error('Strudel editor not found');
-                document.getElementById('audio-warning').style.display = 'block';
-                alert('Strudel editor not loaded yet. Please wait a moment and try again.');
-                return;
-            }
-
-            try {
-                // Try different methods that Strudel might use
-                if (typeof strudelEditor.evaluate === 'function') {
-                    strudelEditor.evaluate();
-                    console.log('Used evaluate() method');
-                } else if (typeof strudelEditor.play === 'function') {
-                    strudelEditor.play();
-                    console.log('Used play() method');
-                } else if (typeof strudelEditor.start === 'function') {
-                    strudelEditor.start();
-                    console.log('Used start() method');
-                } else {
-                    // Try to trigger it via keyboard event (Ctrl+Enter)
-                    const event = new KeyboardEvent('keydown', {
-                        key: 'Enter',
-                        code: 'Enter',
-                        ctrlKey: true,
-                        bubbles: true
-                    });
-                    strudelEditor.dispatchEvent(event);
-                    console.log('Triggered via keyboard event');
-                }
-                
-                isPlaying = true;
-                audioInitialized = true;
-                document.getElementById('status-text').textContent = 'Playing 🎵';
-                document.getElementById('audio-warning').style.display = 'none';
-                console.log('Playback started successfully');
-            } catch (error) {
-                console.error('Error starting playback:', error);
-                console.error('Available methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(strudelEditor)));
-                document.getElementById('audio-warning').style.display = 'block';
-                document.getElementById('status-text').textContent = 'Error: ' + error.message;
-                
-                // Show helpful message
-                alert('Cannot start playback automatically.\n\n' +
-                      'Try this instead:\n' +
-                      '1. Click in the Strudel editor (right panel)\n' +
-                      '2. Press Ctrl+Enter to play\n\n' +
-                      'Or edit the code directly in the editor and press Ctrl+Enter.');
-            }
-        }
-
-        // Stop playback
-        function stopCode() {
-            if (strudelEditor) {
-                try {
-                    if (typeof strudelEditor.stop === 'function') {
-                        strudelEditor.stop();
-                    } else if (typeof strudelEditor.pause === 'function') {
-                        strudelEditor.pause();
-                    } else {
-                        // Try keyboard shortcut (Ctrl+.)
-                        const event = new KeyboardEvent('keydown', {
-                            key: '.',
-                            code: 'Period',
-                            ctrlKey: true,
-                            bubbles: true
-                        });
-                        strudelEditor.dispatchEvent(event);
-                    }
-                    isPlaying = false;
-                    document.getElementById('status-text').textContent = 'Stopped';
-                    console.log('Playback stopped');
-                } catch (error) {
-                    console.error('Error stopping playback:', error);
-                }
-            }
-        }
-
-        // Refresh code from server
-        function refreshCode() {
-            fetchCode();
-        }
-
-        // Load code into editor manually
-        function loadCodeToEditor() {
-            const code = document.getElementById('code-display').textContent;
-            
-            if (!code || code === '// Waiting for code...') {
-                alert('No code available yet. Generate code in Terminal 2 first!');
-                return;
-            }
-            
-            // Try to copy to clipboard
-            navigator.clipboard.writeText(code).then(() => {
-                alert('✅ Code copied to clipboard!\n\n' +
-                      'Now:\n' +
-                      '1. Click in the Strudel editor (right panel)\n' +
-                      '2. Press Ctrl+A to select all\n' +
-                      '3. Press Ctrl+V to paste\n' +
-                      '4. Press Ctrl+Enter to play! 🎵');
-            }).catch(() => {
-                // Fallback if clipboard API doesn't work
-                const textarea = document.createElement('textarea');
-                textarea.value = code;
-                document.body.appendChild(textarea);
-                textarea.select();
-                try {
-                    document.execCommand('copy');
-                    alert('✅ Code copied to clipboard!\n\n' +
-                          'Now:\n' +
-                          '1. Click in the Strudel editor\n' +
-                          '2. Press Ctrl+A, then Ctrl+V\n' +
-                          '3. Press Ctrl+Enter to play!');
-                } catch (err) {
-                    alert('Could not copy automatically.\n\n' +
-                          'Please manually copy the code from the left panel.');
-                }
-                document.body.removeChild(textarea);
-            });
-        }
-
         // Handle prompt input
         async function sendPrompt() {
             const input = document.getElementById('prompt-input');
             const prompt = input.value.trim();
-            
-            if (!prompt) {
-                alert('Please enter a prompt first!');
-                return;
-            }
             
             // Note: This would need a backend endpoint to forward to the AI agent
             // For now, just show a message
@@ -723,12 +561,6 @@
                   'Then type your prompts there. The code will update here automatically!');
             
             input.value = '';
-        }
-
-        function handlePromptKeypress(event) {
-            if (event.key === 'Enter') {
-                sendPrompt();
-            }
         }
 
         // Add helpful console messages
@@ -741,7 +573,6 @@
 
         // Cleanup on page unload
         window.addEventListener('beforeunload', () => {
-            stopPolling();
             if (strudelEditor) {
                 strudelEditor.stop();
             }
