@@ -238,18 +238,6 @@
             background: rgba(0, 0, 0, 0.4);
         }
 
-        .prompt-hint {
-            font-size: 12px;
-            opacity: 0.7;
-            margin-top: 10px;
-        }
-
-        .prompt-hint code {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 2px 6px;
-            border-radius: 3px;
-        }
-
         #audio-warning {
             background: rgba(239, 68, 68, 0.2);
             border-left: 4px solid #ef4444;
@@ -281,21 +269,18 @@
         <p>AI-powered generative music with Strudel</p>
     </div>
 
-    <div class="status-bar">
-        <div class="status-indicator">
-            <div class="status-dot"></div>
-            <span id="status-text">Connected</span>
-        </div>
-        <div>
-            <span id="update-time">No updates yet</span>
-        </div>
-    </div>
-
     <div class="main-container">
         <div class="code-panel">
-            <h2>📝 Current Code</h2>
-            <div id="code-display">// Waiting for code...</div>
-            
+            <h2>💬 AI Prompt</h2>
+            <div class="prompt-section">
+                <input
+                    type="text"
+                    id="prompt-input"
+                    placeholder="Type a prompt like: add more bass, make it faster..."
+                    onkeypress="handlePromptKeypress(event)">
+                <button class="btn-secondary" onclick="sendPrompt()">🚀 Send Prompt</button>
+            </div>
+
             <div id="audio-warning">
                 <strong>⚠️ Audio Issue?</strong><br>
                 Make sure to click the Play button and allow audio in your browser.
@@ -332,27 +317,8 @@
             </div>
             
             <div class="controls">
-                <button class="btn-primary" onclick="loadCodeToEditor()">📥 Load Code from Left Panel</button>
                 <button class="btn-primary" onclick="playCode()">▶️ Play</button>
                 <button class="btn-danger" onclick="stopCode()">⏹️ Stop</button>
-                <button id="refresh-btn" class="btn-secondary" onclick="refreshCode()">🔄 Refresh Code</button>
-                <button id="auto-update-btn" class="btn-secondary" onclick="toggleAutoUpdate()">
-                    🔄 Auto-Update: <span id="auto-update-status">OFF</span>
-                </button>
-            </div>
-            
-            <div class="prompt-section">
-                <h3>💬 AI Prompt - Send from Web! ✨</h3>
-                <input 
-                    type="text" 
-                    id="prompt-input" 
-                    placeholder="Type a prompt like: add more bass, make it faster..."
-                    onkeypress="handlePromptKeypress(event)">
-                <button class="btn-secondary" onclick="sendPrompt()">🚀 Send Prompt</button>
-                <p class="prompt-hint">
-                    <strong>✅ NEW:</strong> Send prompts directly from the browser!<br>
-                    Make sure AI agent is running: <code>python3 test_mock_mode.py</code>
-                </p>
             </div>
         </div>
     </div>
@@ -361,53 +327,18 @@
         let strudelEditor;
         let isPlaying = false;
         let pollInterval;
-        let audioInitialized = false;
-        let autoUpdate = false;  // Auto-update toggle state
 
         // Initialize Strudel editor
         window.addEventListener('DOMContentLoaded', () => {
-            console.log('');
-            console.log('🎵 === STRUDEL INITIALIZATION STARTING ===');
-            
             strudelEditor = document.getElementById('strudel-editor');
-            
-            // Basic checks
-            console.log('1. Editor element found:', !!strudelEditor);
-            console.log('2. Element tag:', strudelEditor?.tagName || 'N/A');
-            console.log('3. Element ID:', strudelEditor?.id || 'N/A');
-            console.log('4. Component registered:', !!customElements.get('strudel-editor'));
-            
-            // Check if element exists
-            if (!strudelEditor) {
-                console.error('❌ ERROR: Could not find element with ID "strudel-editor"!');
-                console.log('💡 Check HTML for <strudel-editor id="strudel-editor">');
-                return;
-            }
-            
-            // Check if the component is defined
-            if (!customElements.get('strudel-editor')) {
-                console.error('❌ strudel-editor component is NOT registered!');
-                console.log('💡 Make sure the Strudel REPL script loaded correctly');
-                console.log('💡 Check Network tab for failed script loads');
-                console.log('💡 Script should be: https://unpkg.com/@strudel/repl@latest');
-            } else {
-                console.log('✅ strudel-editor component is registered');
-            }
-            
-            console.log('');
-            
+
             // Wait for Strudel to fully load - check multiple times
             let checkCount = 0;
             const maxChecks = 10;
             
             const checkStrudelReady = () => {
                 checkCount++;
-                console.log(`🔍 Check ${checkCount}/${maxChecks}: Strudel initialization...`);
-                
                 if (strudelEditor) {
-                    console.log('📊 Has shadowRoot:', !!strudelEditor.shadowRoot);
-                    console.log('📊 Available methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(strudelEditor)).join(', '));
-                    
                     // Check if shadow root is available
                     if (strudelEditor.shadowRoot) {
                         console.log('✅ Shadow root found!');
@@ -416,80 +347,12 @@
                         if (cmEditor) {
                             console.log('🔍 CM View available:', !!(cmEditor._cm || cmEditor.cmView));
                         }
-                        
-                        // Start polling
-                        console.log('✅ Strudel fully ready - starting polling');
-                        startPolling();
-                        
-                        // Initial code fetch
-                        fetchCode().then(() => {
-                            console.log('🎵 Initial code loaded');
-                        });
+
                         return;
                     } else if (checkCount < maxChecks) {
                         // Shadow root not ready yet, check again
                         console.log('⏳ Shadow root not ready, checking again in 500ms...');
                         setTimeout(checkStrudelReady, 500);
-                    } else {
-                        // Shadow root never appeared, but start anyway
-                        console.warn('⚠️ Shadow root never appeared after 5 seconds');
-                        console.log('💡 Will use alternative code injection methods');
-                        console.log('');
-                        console.log('═══════════════════════════════════════════════════');
-                        console.log('🔍 DIAGNOSTIC INFO:');
-                        console.log('═══════════════════════════════════════════════════');
-                        
-                        try {
-                            console.log('1. Tag name:', strudelEditor?.tagName || 'N/A');
-                            console.log('2. Has shadowRoot:', !!strudelEditor?.shadowRoot);
-                            console.log('3. Component type:', strudelEditor?.constructor?.name || 'Unknown');
-                            
-                            // List all properties
-                            try {
-                                const allProps = [];
-                                for (let prop in strudelEditor) {
-                                    allProps.push(prop);
-                                }
-                                console.log('4. Properties count:', allProps.length);
-                                console.log('5. First 30 properties:', allProps.slice(0, 30).join(', '));
-                            } catch (e) {
-                                console.error('   Error listing properties:', e.message);
-                            }
-                            
-                            // List all methods
-                            try {
-                                const proto = Object.getPrototypeOf(strudelEditor);
-                                const allNames = Object.getOwnPropertyNames(proto);
-                                const methods = allNames.filter(
-                                    name => typeof strudelEditor[name] === 'function'
-                                );
-                                console.log('6. Methods count:', methods.length);
-                                console.log('7. Available methods:', methods.join(', '));
-                            } catch (e) {
-                                console.error('   Error listing methods:', e.message);
-                            }
-                            
-                            // Check for code-related properties
-                            console.log('8. Has "code" property:', 'code' in strudelEditor);
-                            console.log('9. "code" value type:', typeof strudelEditor.code);
-                            console.log('10. "code" current value:', strudelEditor.code);
-                            console.log('11. Has "setCode" method:', typeof strudelEditor.setCode === 'function');
-                            console.log('12. Has "setValue" method:', typeof strudelEditor.setValue === 'function');
-                            console.log('13. Has "updateCode" method:', typeof strudelEditor.updateCode === 'function');
-                            console.log('14. Has "value" property:', 'value' in strudelEditor);
-                            console.log('15. Has "text" property:', 'text' in strudelEditor);
-                            
-                        } catch (e) {
-                            console.error('❌ Error during diagnostics:', e);
-                            console.error('Stack:', e.stack);
-                        }
-                        
-                        console.log('═══════════════════════════════════════════════════');
-                        console.log('');
-                        
-                        // Start polling anyway
-                        startPolling();
-                        fetchCode();
                     }
                 }
             };
@@ -499,753 +362,30 @@
         });
 
         let lastCode = '';  // Track last code to detect changes
-        
-        // Fetch current code from server
-        async function fetchCode() {
-            try {
-                // Add cache-busting timestamp to prevent browser caching
-                const timestamp = new Date().getTime();
-                const response = await fetch(`http://localhost:3000/code?t=${timestamp}`, {
-                    cache: 'no-cache',
-                    headers: {
-                        'Cache-Control': 'no-cache',
-                        'Pragma': 'no-cache'
-                    }
-                });
-                const data = await response.json();
-                
-                if (data.code) {
-                    // Debug: Show what we fetched
-                    console.log('📥 Fetched code length:', data.code.length, 'chars');
-                    console.log('📦 Last code length:', lastCode.length, 'chars');
-                    console.log('🔍 Are they same?', data.code === lastCode);
-                    
-                    // Only update if code changed
-                    if (data.code !== lastCode) {
-                        console.log('🔄 NEW CODE DETECTED! Updating...');
-                        console.log('Old code preview:', lastCode.substring(0, 50));
-                        console.log('New code preview:', data.code.substring(0, 50));
-                        lastCode = data.code;
-                        updateCode(data.code);
-                    } else {
-                        console.log('⏱️ Polling... (no changes)');
-                    }
-                } else {
-                    console.warn('⚠️ No code in response');
-                }
-            } catch (error) {
-                console.error('❌ Error fetching code:', error);
-                document.getElementById('status-text').textContent = 'Connection error';
-            }
-        }
 
-        // Update the displayed code and Strudel editor
-        async function updateCode(code, forceUpdate = false) {
-            console.log('📝 Updating code display...');
-            if (forceUpdate) {
-                console.log('🔥 FORCED UPDATE - bypassing all checks');
-            }
-            
-            // Update code display
-            document.getElementById('code-display').textContent = code;
-            console.log('✅ Left panel updated with', code.length, 'characters');
-            
-            // Update Strudel REPL - DIRECT CodeMirror injection
-            if (strudelEditor) {
-                try {
-                    console.log('🎯 Attempting to inject code into Strudel REPL...');
-                    
-                    // Method 1: Try to find and update CodeMirror directly
-                    function injectCodeToCodeMirror() {
-                        try {
-                            console.log('🔍 Step 1: Checking shadow root...');
-                            // Strudel uses CodeMirror internally
-                            if (!strudelEditor.shadowRoot) {
-                                console.error('❌ Shadow root not available!');
-                                return false;
-                            }
-                            console.log('✅ Shadow root found');
-                            
-                            console.log('🔍 Step 2: Looking for .cm-editor...');
-                            // ALWAYS re-query for fresh references
-                            const cmEditor = strudelEditor.shadowRoot.querySelector('.cm-editor');
-                            if (cmEditor) {
-                                console.log('✅ Found CodeMirror editor element');
-                                
-                                console.log('🔍 Step 3: Getting CodeMirror view instance...');
-                                // Get the CodeMirror view instance (try multiple properties)
-                                const cmView = cmEditor._cm || cmEditor.cmView || cmEditor.CodeMirror;
-                                
-                                console.log('📊 cmView exists:', !!cmView);
-                                console.log('📊 cmView.state exists:', !!(cmView && cmView.state));
-                                console.log('📊 cmView.dispatch exists:', !!(cmView && cmView.dispatch));
-                                
-                                if (cmView && cmView.state && cmView.dispatch) {
-                                    console.log('✅ Found CodeMirror view instance');
-                                    console.log('📝 Current doc length:', cmView.state.doc.length);
-                                    console.log('📝 New code length:', code.length);
-                                    console.log('📝 First 50 chars of new code:', code.substring(0, 50));
-                                    
-                                    // Get current document length (fresh each time!)
-                                    const currentLength = cmView.state.doc.length;
-                                    
-                                    console.log('🔍 Step 4: Dispatching change...');
-                                    // Update using CodeMirror's API - replace ALL content
-                                    cmView.dispatch({
-                                        changes: {
-                                            from: 0,
-                                            to: currentLength,  // Use current length, not cached
-                                            insert: code
-                                        }
-                                    });
-                                    console.log('✅ CodeMirror dispatch() completed!');
-                                    
-                                    // Force a refresh/update
-                                    if (cmView.update) {
-                                        cmView.update([]);
-                                        console.log('✅ CodeMirror update() called');
-                                    }
-                                    
-                                    // Verify the update
-                                    const newLength = cmView.state.doc.length;
-                                    console.log('📊 New doc length after update:', newLength);
-                                    console.log('📊 Expected length:', code.length);
-                                    console.log('📊 Match:', newLength === code.length);
-                                    
-                                    return true;
-                                } else {
-                                    console.error('❌ CodeMirror view instance not found or incomplete');
-                                    console.log('   - cmView:', !!cmView);
-                                    console.log('   - cmView.state:', !!(cmView && cmView.state));
-                                    console.log('   - cmView.dispatch:', !!(cmView && cmView.dispatch));
-                                }
-                            } else {
-                                console.error('❌ .cm-editor element not found in shadow DOM');
-                            }
-                            
-                            // Fallback: Try direct content manipulation
-                            const contentArea = strudelEditor.shadowRoot.querySelector('.cm-content');
-                            if (contentArea) {
-                                console.log('📝 Trying content area manipulation...');
-                                
-                                // Store current scroll position
-                                const scrollTop = contentArea.scrollTop;
-                                
-                                // Clear all existing content
-                                while (contentArea.firstChild) {
-                                    contentArea.removeChild(contentArea.firstChild);
-                                }
-                                
-                                // Add new content line by line
-                                const lines = code.split('\n');
-                                lines.forEach((line, i) => {
-                                    const lineEl = document.createElement('div');
-                                    lineEl.className = 'cm-line';
-                                    lineEl.textContent = line || ' ';
-                                    contentArea.appendChild(lineEl);
-                                });
-                                
-                                // Restore scroll position
-                                contentArea.scrollTop = scrollTop;
-                                
-                                // Dispatch multiple events to ensure update
-                                contentArea.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
-                                contentArea.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
-                                
-                                console.log('✅ CodeMirror content area updated!');
-                                return true;
-                            }
-                            
-                            console.log('⚠️ No CodeMirror elements found');
-                            return false;
-                        } catch (e) {
-                            console.error('⚠️ CodeMirror direct update failed:', e);
-                            return false;
-                        }
-                    }
-                    
-                    // Method 2: Try setCode method on .editor property or component (NO shadow DOM needed!)
-                    function trySetCodeMethod() {
-                        console.log('🔍 Trying public API methods...');
-                        try {
-                            // PRIORITY 1: Try methods on .editor property (CodeMirror instance)
-                            if (strudelEditor.editor) {
-                                console.log('📝 Found .editor property, trying methods on it...');
-                                const editorMethods = ['setCode', 'updateCode', 'setValue', 'setContent'];
-                                
-                                for (const methodName of editorMethods) {
-                                    if (typeof strudelEditor.editor[methodName] === 'function') {
-                                        console.log(`📝 Trying strudelEditor.editor.${methodName}()`);
-                                        strudelEditor.editor[methodName](code);
-                                        console.log(`✅ .editor.${methodName}() method worked!`);
-                                        return true;
-                                    }
-                                }
-                                
-                                // Try setting code as a property on .editor
-                                if ('code' in strudelEditor.editor) {
-                                    console.log('📝 Trying to set .editor.code property');
-                                    strudelEditor.editor.code = code;
-                                    console.log('✅ .editor.code property set!');
-                                    return true;
-                                }
-                            }
-                            
-                            // PRIORITY 2: Try methods on component itself
-                            const methods = ['setCode', 'updateCode', 'setValue', 'setContent'];
-                            
-                            for (const methodName of methods) {
-                                if (typeof strudelEditor[methodName] === 'function') {
-                                    console.log(`📝 Trying method: ${methodName}()`);
-                                    strudelEditor[methodName](code);
-                                    console.log(`✅ ${methodName}() method worked!`);
-                                    return true;
-                                }
-                            }
-                            
-                            // Try setting code as a property on component
-                            if ('code' in strudelEditor) {
-                                console.log('📝 Trying to set .code property');
-                                strudelEditor.code = code;
-                                console.log('✅ .code property set!');
-                                return true;
-                            }
-                            
-                            console.log('⚠️ No public API methods found');
-                            return false;
-                        } catch (e) {
-                            console.error('❌ Public API methods failed:', e);
-                            return false;
-                        }
-                    }
-                    
-                    // Method 3: Fallback - use code attribute
-                    function tryCodeAttribute() {
-                        console.log('🔍 Trying code attribute...');
-                        try {
-                            // Set as attribute
-                            strudelEditor.setAttribute('code', code);
-                            console.log('✅ Code attribute set');
-                            
-                            // Also try as property
-                            try {
-                                strudelEditor.code = code;
-                                console.log('✅ Code property set');
-                            } catch (e) {
-                                console.log('⚠️ Could not set code property');
-                            }
-                            
-                            // Dispatch events to notify the component
-                            try {
-                                strudelEditor.dispatchEvent(new Event('change', { bubbles: true }));
-                                strudelEditor.dispatchEvent(new CustomEvent('code-changed', { 
-                                    detail: { code }, 
-                                    bubbles: true 
-                                }));
-                                console.log('✅ Change events dispatched');
-                            } catch (e) {
-                                console.log('⚠️ Could not dispatch events');
-                            }
-                            
-                            return true;
-                        } catch (e) {
-                            console.error('❌ Code attribute failed:', e);
-                            return false;
-                        }
-                    }
-                    
-                    // Try all methods in order
-                    let success = false;
-                    
-                    // PRIORITY 1: Try public API methods first (works without shadow DOM!)
-                    if (trySetCodeMethod()) {
-                        success = true;
-                        console.log('🎉 Success via public API method!');
-                    }
-                    // PRIORITY 2: Try code attribute
-                    else if (tryCodeAttribute()) {
-                        success = true;
-                        console.log('🎉 Success via code attribute!');
-                    }
-                    // PRIORITY 3: Try CodeMirror direct access (requires shadow DOM)
-                    else if (injectCodeToCodeMirror()) {
-                        success = true;
-                        console.log('🎉 Success via CodeMirror direct access!');
-                    }
-                    
-                    if (success) {
-                        console.log('🎉 Code injected into Strudel REPL successfully!');
-                        
-                        // Flash the Strudel panel to draw attention
-                        const strudelPanel = document.querySelector('.strudel-panel');
-                        if (strudelPanel) {
-                            strudelPanel.style.animation = 'flash 0.5s';
-                            setTimeout(() => {
-                                strudelPanel.style.animation = '';
-                            }, 500);
-                        }
-                        
-                        // Auto-update: automatically evaluate if enabled
-                        if (autoUpdate) {
-                            console.log('🔄 Auto-Update enabled - evaluating code automatically...');
-                            setTimeout(() => {
-                                playCode();
-                            }, 300);
-                        } else {
-                            console.log('👉 Press Ctrl+Enter in the REPL to hear the music!');
-                            console.log('💡 Or enable Auto-Update button for automatic playback');
-                        }
-                    } else {
-                        console.log('⚠️ Auto-injection failed - use "Load Code" button instead');
-                    }
-                    
-                    // Continue playing if already playing (keeps the music going)
-                    if (isPlaying && !autoUpdate) {
-                        setTimeout(() => {
-                            playCode();
-                        }, 200);
-                    }
-                    
-                } catch (error) {
-                    console.error('❌ Error updating Strudel code:', error);
-                    console.log('💡 Use the "📥 Load Code" button instead');
-                }
-            } else {
-                console.warn('⚠️ Strudel editor not initialized yet');
-            }
-            
-            // Update timestamp
-            const now = new Date();
-            document.getElementById('update-time').textContent = 
-                `Updated: ${now.toLocaleTimeString()}`;
-        }
-
-        // Poll for code updates
-        function startPolling() {
-            console.log('🔄 Starting polling for code updates (every 1 second)...');
-            pollInterval = setInterval(fetchCode, 1000); // Check every second
-        }
-
-        function stopPolling() {
-            if (pollInterval) {
-                clearInterval(pollInterval);
-            }
-        }
-
-        // Play the current code
-        function playCode() {
-            console.log('🎵 Play button clicked');
-            
-            if (!strudelEditor) {
-                console.error('❌ Strudel editor not found');
-                document.getElementById('audio-warning').style.display = 'block';
-                alert('Strudel editor not loaded yet. Please wait a moment and try again.');
-                return;
-            }
-
-            try {
-                console.log('🔍 Trying to play code...');
-                console.log('Editor type:', strudelEditor.tagName);
-                console.log('Has .editor property:', 'editor' in strudelEditor);
-                
-                let played = false;
-                
-                // Method 1: Try the .editor property (CodeMirror instance)
-                if (strudelEditor.editor && typeof strudelEditor.editor.evaluate === 'function') {
-                    console.log('📝 Trying strudelEditor.editor.evaluate() method...');
-                    strudelEditor.editor.evaluate();
-                    console.log('✅ Used .editor.evaluate() method');
-                    played = true;
-                }
-                // Method 2: Try evaluate() on component itself
-                else if (typeof strudelEditor.evaluate === 'function') {
-                    console.log('📝 Trying evaluate() method...');
-                    strudelEditor.evaluate();
-                    console.log('✅ Used evaluate() method');
-                    played = true;
-                }
-                // Method 3: Try play() method
-                else if (typeof strudelEditor.play === 'function') {
-                    console.log('📝 Trying play() method...');
-                    strudelEditor.play();
-                    console.log('✅ Used play() method');
-                    played = true;
-                }
-                // Method 4: Try start() method
-                else if (typeof strudelEditor.start === 'function') {
-                    console.log('📝 Trying start() method...');
-                    strudelEditor.start();
-                    console.log('✅ Used start() method');
-                    played = true;
-                }
-                // Method 4: Dispatch Ctrl+Enter to the actual editor element inside shadow DOM
-                else {
-                    console.log('📝 No direct play method found, trying keyboard events...');
-                    
-                    // Find the actual editable element inside shadow DOM
-                    let targetElement = null;
-                    
-                    if (strudelEditor.shadowRoot) {
-                        console.log('🔍 Searching shadow DOM for editor element...');
-                        
-                        // DEBUG: Show what's in the shadow DOM
-                        const shadowChildren = strudelEditor.shadowRoot.children;
-                        console.log('📊 Shadow DOM children count:', shadowChildren.length);
-                        for (let i = 0; i < Math.min(shadowChildren.length, 5); i++) {
-                            console.log(`   - Child ${i}:`, shadowChildren[i].tagName, shadowChildren[i].className);
-                        }
-                        
-                        // Try multiple selectors for the actual editor
-                        const selectors = [
-                            '.cm-content',      // CodeMirror content area
-                            '.cm-editor',       // CodeMirror editor
-                            '.cm-scroller',     // CodeMirror scroller
-                            '[contenteditable]', // Any contenteditable
-                            'textarea',         // Textarea fallback
-                            '.editor',          // Generic editor class
-                            '[role="textbox"]', // ARIA role
-                            '.codemirror',      // Lowercase variant
-                        ];
-                        
-                        console.log('🔍 Trying selectors:', selectors.join(', '));
-                        
-                        for (const selector of selectors) {
-                            targetElement = strudelEditor.shadowRoot.querySelector(selector);
-                            if (targetElement) {
-                                console.log(`✅ Found editor element: ${selector}`);
-                                console.log('   Element:', targetElement.tagName, targetElement.className);
-                                break;
-                            }
-                        }
-                        
-                        if (!targetElement) {
-                            console.log('❌ None of the selectors matched');
-                            // Try getting any focusable element
-                            targetElement = strudelEditor.shadowRoot.querySelector('[tabindex]');
-                            if (targetElement) {
-                                console.log('📝 Found focusable element as fallback:', targetElement.tagName);
-                            }
-                        }
-                    } else {
-                        console.log('❌ No shadow root available');
-                    }
-                    
-                    // Create the Ctrl+Enter event
-                    const createCtrlEnterEvent = () => new KeyboardEvent('keydown', {
-                        key: 'Enter',
-                        code: 'Enter',
-                        keyCode: 13,
-                        which: 13,
-                        ctrlKey: true,
-                        bubbles: true,
-                        composed: true,
-                        cancelable: true
-                    });
-                    
-                    // Dispatch to the best available target
-                    if (targetElement) {
-                        // Found the actual editor element - dispatch there!
-                        console.log('📤 Dispatching Ctrl+Enter to editor element...');
-                        targetElement.dispatchEvent(createCtrlEnterEvent());
-                        
-                        // Also try 'keyup' event
-                        const keyupEvent = new KeyboardEvent('keyup', {
-                            key: 'Enter',
-                            code: 'Enter',
-                            keyCode: 13,
-                            ctrlKey: true,
-                            bubbles: true,
-                            composed: true
-                        });
-                        targetElement.dispatchEvent(keyupEvent);
-                        
-                        console.log('✅ Keyboard events dispatched to actual editor element');
-                        played = true;
-                    } else {
-                        // Fallback: dispatch to component and document
-                        console.log('⚠️ Editor element not found in shadow DOM');
-                        console.log('📤 Trying fallback: dispatch to component and document...');
-                        
-                        const event = createCtrlEnterEvent();
-                        strudelEditor.dispatchEvent(event);
-                        document.dispatchEvent(createCtrlEnterEvent());
-                        
-                        console.log('✅ Dispatched Ctrl+Enter to component and document');
-                        console.log('💡 If this doesn\'t work, manual Ctrl+Enter is the way');
-                        played = true;
-                    }
-                }
-                
-                if (played) {
-                    isPlaying = true;
-                    audioInitialized = true;
-                    document.getElementById('status-text').textContent = 'Playing 🎵';
-                    document.getElementById('audio-warning').style.display = 'none';
-                    console.log('✅ Playback command sent');
-                    console.log('💡 If you don\'t hear sound, click in the editor and press Ctrl+Enter');
-                }
-                
-            } catch (error) {
-                console.error('❌ Error starting playback:', error);
-                console.error('Stack:', error.stack);
-                
-                // Show available methods for debugging
-                try {
-                    const proto = Object.getPrototypeOf(strudelEditor);
-                    const methods = Object.getOwnPropertyNames(proto).filter(
-                        name => typeof strudelEditor[name] === 'function'
-                    );
-                    console.log('📊 Available methods:', methods.join(', '));
-                } catch (e) {
-                    console.error('Could not list methods:', e);
-                }
-                
-                document.getElementById('audio-warning').style.display = 'block';
-                document.getElementById('status-text').textContent = 'Error';
-                
-                // Show helpful message
-                alert('Play button encountered an issue.\n\n' +
-                      'Manual workaround:\n' +
-                      '1. Click in the Strudel editor (right panel)\n' +
-                      '2. Press Ctrl+Enter to play\n' +
-                      '3. Check console (F12) for details');
-            }
-        }
-
-        // Stop playback
-        function stopCode() {
-            console.log('⏹️ Stop button clicked');
-            
-            if (strudelEditor) {
-                try {
-                    console.log('Has .editor property:', 'editor' in strudelEditor);
-                    let stopped = false;
-                    
-                    // Method 1: Try stop() on .editor property
-                    if (strudelEditor.editor && typeof strudelEditor.editor.stop === 'function') {
-                        console.log('📝 Trying strudelEditor.editor.stop() method...');
-                        strudelEditor.editor.stop();
-                        console.log('✅ Used .editor.stop() method');
-                        stopped = true;
-                    }
-                    // Method 2: Try stop() on component itself
-                    else if (typeof strudelEditor.stop === 'function') {
-                        console.log('📝 Trying stop() method...');
-                        strudelEditor.stop();
-                        console.log('✅ Used stop() method');
-                        stopped = true;
-                    }
-                    // Method 3: Try pause() on .editor property
-                    else if (strudelEditor.editor && typeof strudelEditor.editor.pause === 'function') {
-                        console.log('📝 Trying strudelEditor.editor.pause() method...');
-                        strudelEditor.editor.pause();
-                        console.log('✅ Used .editor.pause() method');
-                        stopped = true;
-                    }
-                    // Method 4: Try pause() method
-                    else if (typeof strudelEditor.pause === 'function') {
-                        console.log('📝 Trying pause() method...');
-                        strudelEditor.pause();
-                        console.log('✅ Used pause() method');
-                        stopped = true;
-                    }
-                    // Method 5: Try hush() on .editor (Strudel's stop-all function)
-                    else if (strudelEditor.editor && typeof strudelEditor.editor.hush === 'function') {
-                        console.log('📝 Trying strudelEditor.editor.hush() method...');
-                        strudelEditor.editor.hush();
-                        console.log('✅ Used .editor.hush() method');
-                        stopped = true;
-                    }
-                    // Fallback: Dispatch Ctrl+. (standard stop in Strudel)
-                    else {
-                        console.log('📝 No direct stop method, trying Ctrl+. keyboard event...');
-                        const event = new KeyboardEvent('keydown', {
-                            key: '.',
-                            code: 'Period',
-                            keyCode: 190,
-                            ctrlKey: true,
-                            bubbles: true,
-                            composed: true,
-                            cancelable: true
-                        });
-                        strudelEditor.dispatchEvent(event);
-                        console.log('✅ Dispatched Ctrl+. to component');
-                        console.log('💡 If this doesn\'t work, press Ctrl+. manually in the editor');
-                        stopped = true;
-                    }
-                    
-                    if (stopped) {
-                        isPlaying = false;
-                        document.getElementById('status-text').textContent = 'Stopped';
-                        console.log('✅ Stop command sent');
-                    }
-                } catch (error) {
-                    console.error('❌ Error stopping playback:', error);
-                    console.error('Stack:', error.stack);
-                }
-            }
-        }
-
-        // Refresh code from server
-        async function refreshCode() {
-            console.log('🔄 Manual refresh requested...');
-            
-            // Visual feedback - disable button during refresh
-            const refreshBtn = document.getElementById('refresh-btn');
-            const originalText = refreshBtn.innerHTML;
-            refreshBtn.disabled = true;
-            refreshBtn.innerHTML = '⏳ Refreshing...';
-            
-            // Temporarily clear lastCode to force an update
-            const previousCode = lastCode;
-            lastCode = '';
-            
-            try {
-                // Fetch with cache-busting
-                const timestamp = new Date().getTime();
-                const response = await fetch(`http://localhost:3000/code?t=${timestamp}`, {
-                    cache: 'no-cache',
-                    headers: {
-                        'Cache-Control': 'no-cache',
-                        'Pragma': 'no-cache'
-                    }
-                });
-                const data = await response.json();
-                
-                if (data.code) {
-                    console.log('✅ Refreshed code from server');
-                    console.log('📝 Code length:', data.code.length, 'chars');
-                    console.log('🔍 Current REPL state before refresh');
-                    
-                    // Force update even if it's the same code - pass forceUpdate=true
-                    lastCode = data.code;
-                    await updateCode(data.code, true);  // TRUE = force injection into REPL
-                    
-                    console.log('✅ Force update completed');
-                    
-                    // Show success message
-                    const statusEl = document.getElementById('status-text');
-                    const originalStatus = statusEl.textContent;
-                    statusEl.textContent = '✅ Refreshed!';
-                    
-                    // Success feedback on button
-                    refreshBtn.innerHTML = '✅ Refreshed!';
-                    
-                    setTimeout(() => {
-                        statusEl.textContent = originalStatus;
-                        refreshBtn.innerHTML = originalText;
-                        refreshBtn.disabled = false;
-                    }, 2000);
-                } else {
-                    console.warn('⚠️ No code available on server');
-                    // Restore previous code if fetch failed
-                    lastCode = previousCode;
-                    refreshBtn.innerHTML = originalText;
-                    refreshBtn.disabled = false;
-                    alert('No code available on server yet. Generate some code first!');
-                }
-            } catch (error) {
-                console.error('❌ Error refreshing code:', error);
-                // Restore previous code on error
-                lastCode = previousCode;
-                refreshBtn.innerHTML = '❌ Failed';
-                
+        async function updateCode(code) {
+            strudelEditor.editor.setCode(code);
+            if (isPlaying) {
                 setTimeout(() => {
-                    refreshBtn.innerHTML = originalText;
-                    refreshBtn.disabled = false;
-                }, 2000);
-                
-                alert('Failed to refresh code. Check if the server is running at localhost:3000');
+                    playCode();
+                }, 200);
             }
         }
 
-        // Load code into editor manually
-        function loadCodeToEditor() {
-            const code = document.getElementById('code-display').textContent;
-            
-            if (!code || code === '// Waiting for code...') {
-                alert('No code available yet. Generate code in Terminal 2 first!');
-                return;
-            }
-            
-            // Try to copy to clipboard
-            navigator.clipboard.writeText(code).then(() => {
-                alert('✅ Code copied to clipboard!\n\n' +
-                      'Now:\n' +
-                      '1. Click in the Strudel editor (right panel)\n' +
-                      '2. Press Ctrl+A to select all\n' +
-                      '3. Press Ctrl+V to paste\n' +
-                      '4. Press Ctrl+Enter to play! 🎵');
-            }).catch(() => {
-                // Fallback if clipboard API doesn't work
-                const textarea = document.createElement('textarea');
-                textarea.value = code;
-                document.body.appendChild(textarea);
-                textarea.select();
-                try {
-                    document.execCommand('copy');
-                    alert('✅ Code copied to clipboard!\n\n' +
-                          'Now:\n' +
-                          '1. Click in the Strudel editor\n' +
-                          '2. Press Ctrl+A, then Ctrl+V\n' +
-                          '3. Press Ctrl+Enter to play!');
-                } catch (err) {
-                    alert('Could not copy automatically.\n\n' +
-                          'Please manually copy the code from the left panel.');
-                }
-                document.body.removeChild(textarea);
-            });
+        function playCode() {
+            strudelEditor.editor.evaluate();
+                isPlaying = true;
+            document.getElementById('audio-warning').style.display = 'none';
         }
 
-        // Handle prompt input
+        function stopCode() {
+            strudelEditor.editor.stop();
+        }
+
         async function sendPrompt() {
             const input = document.getElementById('prompt-input');
             const prompt = input.value.trim();
-            
-            if (!prompt) {
-                alert('Please enter a prompt first!');
-                return;
-            }
-            
-            console.log('💬 Sending prompt to server:', prompt);
-            
-            try {
-                // Send prompt to server
-                const response = await fetch('http://localhost:3000/prompt', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ prompt: prompt })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    console.log('✅ Prompt sent successfully!');
-                    console.log('📊 Queue length:', data.queueLength);
-                    
-                    // Clear input
-                    input.value = '';
-                    
-                    // Show success feedback
-                    input.placeholder = '✅ Prompt sent! Waiting for AI...';
-                    setTimeout(() => {
-                        input.placeholder = 'Type a prompt like: add more bass, make it faster...';
-                    }, 3000);
-                    
-                    // Update status
-                    document.getElementById('status-text').textContent = 'Processing prompt...';
-                } else {
-                    throw new Error(data.error || 'Failed to send prompt');
-                }
-            } catch (error) {
-                console.error('❌ Error sending prompt:', error);
-                alert('Failed to send prompt. Make sure:\n' +
-                      '1. The server is running (Terminal 1)\n' +
-                      '2. The AI agent is running (Terminal 2: python3 test_mock_mode.py)\n\n' +
-                      'Error: ' + error.message);
-            }
+            updateCode(prompt);
         }
 
         function handlePromptKeypress(event) {
@@ -1253,53 +393,6 @@
                 sendPrompt();
             }
         }
-
-        // Toggle auto-update mode
-        function toggleAutoUpdate() {
-            autoUpdate = !autoUpdate;
-            
-            const btn = document.getElementById('auto-update-btn');
-            const status = document.getElementById('auto-update-status');
-            
-            if (autoUpdate) {
-                status.textContent = 'ON';
-                btn.classList.add('btn-active');
-                console.log('✅ Auto-Update ENABLED - Code will play automatically!');
-                
-                // If code is already loaded, start playing
-                if (strudelEditor && !isPlaying) {
-                    playCode();
-                }
-            } else {
-                status.textContent = 'OFF';
-                btn.classList.remove('btn-active');
-                console.log('⏸️ Auto-Update DISABLED - Press Ctrl+Enter to play manually');
-            }
-        }
-
-        // Add helpful console messages
-        console.log('%c🎵 Strudel AI Live Coding', 'font-size: 20px; color: #60a5fa; font-weight: bold;');
-        console.log('%cTo generate AI code:', 'font-size: 14px; color: #10b981;');
-        console.log('  1. Run in terminal: python3 test_mock_mode.py');
-        console.log('  2. Type prompts in terminal');
-        console.log('  3. Watch code update here automatically!');
-        console.log('%cOr edit code directly in the player above ↑', 'font-size: 14px; color: #fbbf24;');
-        console.log('');
-        
-        // Global error handler to catch any JS errors
-        window.addEventListener('error', (e) => {
-            console.error('🚨 JavaScript Error:', e.message);
-            console.error('   at:', e.filename, 'line', e.lineno);
-            console.error('   Stack:', e.error?.stack);
-        });
-
-        // Cleanup on page unload
-        window.addEventListener('beforeunload', () => {
-            stopPolling();
-            if (strudelEditor) {
-                strudelEditor.stop();
-            }
-        });
     </script>
 </body>
 </html>
