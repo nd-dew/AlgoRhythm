@@ -1,10 +1,17 @@
 let strudelEditor;
         let isPlaying = false;
         let pollInterval;
+        let history = [];
 
         // Initialize Strudel editor
         window.addEventListener('DOMContentLoaded', () => {
             strudelEditor = document.getElementById('strudel-editor');
+            const historyToggle = document.getElementById('history-toggle');
+            const historyContainer = document.getElementById('history-container');
+
+            historyToggle.addEventListener('click', () => {
+                historyContainer.classList.toggle('hidden');
+            });
 
             // Wait for Strudel to fully load - check multiple times
             let checkCount = 0;
@@ -97,6 +104,9 @@ let strudelEditor;
 
                 if (data.success && data.response) {
                     await updateCode(data.response);
+                    history.push({ prompt, code: data.response });
+                    renderHistory();
+                    updateLastPrompt(prompt);
                 } else {
                     console.error('Failed to process prompt:', data.error || data);
                     alert('AI failed to generate response. Check console for details.');
@@ -116,4 +126,33 @@ let strudelEditor;
             if (event.key === 'Enter') {
                 sendPrompt();
             }
+        }
+
+        function renderHistory() {
+            const historyContainer = document.getElementById('history-container');
+            historyContainer.innerHTML = '';
+            history.forEach((item, index) => {
+                const historyItem = document.createElement('div');
+                historyItem.classList.add('history-item');
+
+                const promptText = document.createElement('span');
+                promptText.classList.add('history-prompt');
+                promptText.textContent = item.prompt;
+                historyItem.appendChild(promptText);
+
+                const revertButton = document.createElement('button');
+                revertButton.classList.add('btn-secondary');
+                revertButton.textContent = 'Revert';
+                revertButton.addEventListener('click', () => {
+                    updateCode(item.code);
+                });
+                historyItem.appendChild(revertButton);
+
+                historyContainer.appendChild(historyItem);
+            });
+        }
+
+        function updateLastPrompt(prompt) {
+            const lastPromptContainer = document.getElementById('last-prompt-container');
+            lastPromptContainer.textContent = `Last prompt: ${prompt}`;
         }

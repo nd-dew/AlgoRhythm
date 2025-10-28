@@ -127,6 +127,46 @@ button {
     animation: dash 1.5s ease-in-out infinite;
 }
 
+#history-container {
+    max-height: 200px;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    transition: max-height 0.3s ease-in-out;
+}
+
+#history-container.hidden {
+    max-height: 0;
+    padding: 0 10px;
+}
+
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.history-item:last-child {
+    border-bottom: none;
+}
+
+.history-prompt {
+    color: #aaa;
+}
+
+#history-toggle {
+    margin-right: 10px;
+}
+
+#last-prompt-container {
+    padding: 5px 20px;
+    color: #aaa;
+    font-style: italic;
+    height: 28px;
+}
+
 @keyframes rotate {
     100% {
         transform: rotate(360deg);
