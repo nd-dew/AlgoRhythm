@@ -21,13 +21,25 @@
             id="prompt-input"
             placeholder="Type a prompt like: add more bass, make it faster..."
             onkeypress="handlePromptKeypress(event)">
-        <button class="btn-secondary" onclick="sendPrompt()">🚀 Send</button>
+        <button class="btn-secondary" id="send-button" onclick="sendPrompt()">
+            <span class="button-text">🚀 Send</span>
+            <svg class="spinner" viewBox="0 0 50 50">
+                <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+            </svg>
+        </button>
         <div class="controls">
             <button class="btn-primary" onclick="playCode()">▶️ Play</button>
             <button class="btn-danger" onclick="stopCode()">⏹️ Stop</button>
         </div>
     </div>
 
+    <script>
+        // Automatically focus the prompt input when the page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            const input = document.getElementById('prompt-input');
+            if (input) input.focus();
+        });
+    </script>
     <script src="script.js"></script>
 </body>
 </html>

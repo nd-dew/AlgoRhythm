@@ -50,17 +50,14 @@ let strudelEditor;
                 strudelEditor.editor.setCode(code);
             }
 
-            if (isPlaying) {
-                setTimeout(() => {
-                    playCode();
-                }, 200);
-            }
+            setTimeout(() => {
+                playCode();
+            }, 200);
         }
 
         function playCode() {
             strudelEditor.editor.evaluate();
                 isPlaying = true;
-            document.getElementById('audio-warning').style.display = 'none';
         }
 
         function stopCode() {
@@ -69,11 +66,15 @@ let strudelEditor;
 
         async function sendPrompt() {
             const input = document.getElementById('prompt-input');
+            const sendButton = document.getElementById('send-button');
             const prompt = input.value.trim();
+
             if (!prompt) {
                 alert("Please enter a prompt first.");
                 return;
             }
+
+            input.value = '';
 
             // get current code from the editor
             let currentCode = strudelEditor.editor.code;
@@ -81,6 +82,10 @@ let strudelEditor;
             if (!currentCode.trim()) {
                 currentCode = "There is no code yet. Please start a new piece of music.";
             }
+
+            sendButton.classList.add('loading');
+            sendButton.disabled = true;
+            input.disabled = true;
 
             try {
                 const response = await fetch('/api/prompt', {
@@ -99,6 +104,11 @@ let strudelEditor;
             } catch (err) {
                 console.error('Error sending prompt:', err);
                 alert('Failed to connect to backend.');
+            } finally {
+                sendButton.classList.remove('loading');
+                sendButton.disabled = false;
+                input.disabled = false;
+                input.focus();
             }
         }
 
