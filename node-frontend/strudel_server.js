@@ -7,6 +7,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const fetch = require('node-fetch');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -58,16 +59,9 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// --- Vertex AI (Gemini) Integration using Application Default Credentials ---
-const { VertexAI } = require('@google-cloud/vertexai');
-
-// Initialize VertexAI
-const vertex_ai = new VertexAI({ project: 'qwiklabs-gcp-00-acb9fdb9ec26', location: 'us-central1' });
-const model = 'gemini-2.5-flash'; // Or another model you want to use
-
-const generativeModel = vertex_ai.getGenerativeModel({
-    model: model,
-});
+// --- ADK (Agent Development Kit) Integration ---
+// ADK endpoint configuration - default to localhost, override with env var
+const ADK_ENDPOINT = process.env.ADK_ENDPOINT || 'http://localhost:8000/run';
 
 app.post('/api/prompt', async (req, res) => {
     const { prompt, code } = req.body;
@@ -84,30 +78,52 @@ app.post('/api/prompt', async (req, res) => {
         const preprompt = fs.readFileSync('./strudel_preprompt.txt', 'utf-8');
         const fullPrompt = `${preprompt}\n\n---\n\nHere is the current code:\n\n\`\`\`javascript\n${code}\n\`\`\`\n\n---\n\nUser Prompt: ${prompt}`;
 
-        const req = {
-            contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
+        // Call ADK Agent REST API
+        const adkRequest = {
+            input: fullPrompt
         };
 
-        const streamingResp = await generativeModel.generateContentStream(req);
-        const aggregatedResponse = await streamingResp.response;
-        const text = aggregatedResponse.candidates[0].content.parts[0].text;
+        console.log(`🔗 Calling ADK Agent at ${ADK_ENDPOINT}...`);
 
-        console.log('🤖 AI Response:', text);
+        const adkResponse = await fetch(ADK_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(adkRequest)
+        });
+
+        if (!adkResponse.ok) {
+            const errorText = await adkResponse.text();
+            throw new Error(`ADK API error! Status: ${adkResponse.status}, Details: ${errorText}`);
+        }
+
+        const responseData = await adkResponse.json();
+        
+        // Extract the agent's response from ADK response format
+        // ADK agent returns: { "result": {...} }
+        if (!responseData.result) {
+            throw new Error('Invalid ADK response format: missing result field');
+        }
+        
+        const text = responseData.result;
+
+        console.log('🤖 ADK Agent Response:', text);
 
         try {
             // Validate the generated code
             // transpile(text);
-            console.log('✅ AI response is valid Strudel code');
+            console.log('✅ ADK Agent response is valid Strudel code');
             currentCode = text; // Update the current code
             res.json({ success: true, message: "Prompt processed successfully", response: text });
         } catch (validationError) {
-            console.error('❌ AI response is invalid Strudel code:', validationError.message);
+            console.error('❌ ADK Agent response is invalid Strudel code:', validationError.message);
             res.json({ success: false, error: 'Invalid Strudel code generated', details: validationError.message });
         }
 
     } catch (error) {
-        console.error('❌ Error calling Vertex AI:', error);
-        res.status(500).json({ error: 'Failed to call AI model' });
+        console.error('❌ Error calling ADK Agent:', error);
+        res.status(500).json({ error: 'Failed to call ADK agent', details: error.message });
     }
 });
 

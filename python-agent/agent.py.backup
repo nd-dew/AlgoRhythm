@@ -6,24 +6,23 @@ from google.adk.agents.llm_agent import LlmAgent
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.genai.types import Content, Part
-from clean_helper import clean_code_response
 
 # Configure Vertex AI via environment variables
 os.environ['GOOGLE_CLOUD_PROJECT'] = 'qwiklabs-gcp-00-acb9fdb9ec26'
 os.environ['GOOGLE_CLOUD_LOCATION'] = 'us-central1'
 os.environ['GOOGLE_GENAI_USE_VERTEXAI'] = 'true'
 
-# Load Strudel preprompt instructions
-preprompt_path = os.path.join(os.path.dirname(__file__), '../node-frontend/strudel_preprompt.txt')
-with open(preprompt_path, 'r') as f:
-    strudel_instruction = f.read()
-
 # Define your agent following ADK documentation
 strudel_agent = LlmAgent(
     model='gemini-2.0-flash',
     name='strudel_music_agent',
-    description='An expert Strudel live-coding music language agent that generates valid, runnable Strudel code.',
-    instruction=strudel_instruction,
+    description='A helpful agent that generates Strudel music code.',
+    instruction='''You are an expert at generating Strudel (TidalCycles) music code.
+When a user asks you to create or modify music:
+1. Generate valid Strudel JavaScript code
+2. Return ONLY the code, without explanations or markdown code blocks
+3. Make sure the code is syntactically correct and ready to run
+''',
 )
 
 # Setup session service
@@ -94,9 +93,6 @@ async def run_agent(payload: dict):
         
         if not result:
             result = "No response generated"
-        else:
-            # Clean the response to remove markdown code blocks and comments
-            result = clean_code_response(result)
         
         return {"result": result}
         
