@@ -76,7 +76,11 @@ let strudelEditor;
             }
 
             // get current code from the editor
-            const currentCode = strudelEditor.editor.code;
+            let currentCode = strudelEditor.editor.code;
+
+            if (!currentCode.trim()) {
+                currentCode = "There is no code yet. Please start a new piece of music.";
+            }
 
             try {
                 const response = await fetch('/api/prompt', {

@@ -1,255 +1,107 @@
 * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-        body {
-            font-family: 'Courier New', monospace;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #fff;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+body {
+    font-family: 'Courier New', monospace;
+    background: #1a1a2e;
+    color: #fff;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
 
-        .header {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 20px;
-            text-align: center;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-        }
+.main-container {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
 
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        }
+#strudel-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    background: #161625;
+    border-radius: 8px;
+    margin: 10px;
+}
 
-        .header p {
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
+strudel-editor {
+    flex: 1;
+    border-radius: 8px;
+    overflow: hidden;
+}
 
-        .status-bar {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
+.command-bar {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
 
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+#prompt-input {
+    flex: 1;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    color: #fff;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    margin-right: 10px;
+}
 
-        .status-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #4ade80;
-            animation: pulse 2s infinite;
-        }
+#prompt-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background: rgba(0, 0, 0, 0.4);
+}
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
+.controls {
+    display: flex;
+    gap: 10px;
+    margin-left: 10px;
+}
 
-        .main-container {
-            flex: 1;
-            display: flex;
-            gap: 20px;
-            padding: 20px;
-            overflow: hidden;
-        }
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: 'Courier New', monospace;
+}
 
-        .code-panel {
-            flex: 1;
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 10px;
-            padding: 20px;
-            overflow: auto;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
+.btn-primary {
+    background: #10b981;
+    color: white;
+}
 
-        .code-panel h2 {
-            margin-bottom: 15px;
-            color: #fbbf24;
-        }
+.btn-primary:hover {
+    background: #059669;
+}
 
-        #code-display {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 20px;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 16px;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            min-height: 200px;
-        }
+.btn-secondary {
+    background: #3b82f6;
+    color: white;
+}
 
-        .strudel-panel {
-            flex: 1;
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 10px;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            display: flex;
-            flex-direction: column;
-        }
+.btn-secondary:hover {
+    background: #2563eb;
+}
 
-        .strudel-panel h2 {
-            margin-bottom: 15px;
-            color: #fbbf24;
-        }
+.btn-danger {
+    background: #ef4444;
+    color: white;
+}
 
-        #strudel-container {
-            flex: 1;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            min-height: 300px;
-        }
-
-        .controls {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            flex-wrap: wrap;
-        }
-
-        button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-family: 'Courier New', monospace;
-        }
-
-        .btn-primary {
-            background: #10b981;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #059669;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-        }
-
-        .btn-secondary {
-            background: #3b82f6;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #2563eb;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-        }
-
-        .btn-danger {
-            background: #ef4444;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #dc2626;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
-        }
-
-        .btn-active {
-            background: #10b981 !important;
-            box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
-        }
-
-        .btn-active:hover {
-            background: #059669 !important;
-        }
-
-        .info-box {
-            background: rgba(59, 130, 246, 0.2);
-            border-left: 4px solid #3b82f6;
-            padding: 15px;
-            margin-top: 15px;
-            border-radius: 5px;
-        }
-
-        .info-box h3 {
-            margin-bottom: 10px;
-            color: #60a5fa;
-        }
-
-        .info-box p {
-            font-size: 14px;
-            line-height: 1.6;
-            opacity: 0.9;
-        }
-
-        .prompt-section {
-            margin-top: 20px;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .prompt-section h3 {
-            margin-bottom: 10px;
-            color: #60a5fa;
-            font-size: 1em;
-        }
-
-        .prompt-section input {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 10px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 5px;
-            color: #fff;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-        }
-
-        .prompt-section input:focus {
-            outline: none;
-            border-color: #3b82f6;
-            background: rgba(0, 0, 0, 0.4);
-        }
-
-        #audio-warning {
-            background: rgba(239, 68, 68, 0.2);
-            border-left: 4px solid #ef4444;
-            padding: 12px;
-            margin: 10px 0;
-            border-radius: 5px;
-            display: none;
-        }
-
-        @keyframes flash {
-            0%, 100% { box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
-            50% { box-shadow: 0 0 40px rgba(251, 191, 36, 0.8), 0 8px 32px rgba(0, 0, 0, 0.3); }
-        }
-
-        @media (max-width: 768px) {
-            .main-container {
-                flex-direction: column;
-            }
-            
-            .header h1 {
-                font-size: 1.8em;
-            }
-        }
+.btn-danger:hover {
+    background: #dc2626;
+}

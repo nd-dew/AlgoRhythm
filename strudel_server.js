@@ -117,15 +117,7 @@ app.post('/api/prompt', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`
 ╔════════════════════════════════════════════════╗
-║   🎵 Strudel Server Running                   ║
-║   http://localhost:${PORT}                        ║
-╚════════════════════════════════════════════════╝
-
-Endpoints:
-  GET  /health  - Health check
-  GET  /code    - Get current code
-  POST /update  - Update code
-  GET  /        - Web interface
+  🎵 Strudel Server Running                   
 
 Open http://localhost:${PORT} in your browser to see the live coding interface!
     `);

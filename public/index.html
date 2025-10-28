@@ -8,54 +8,23 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="header">
-        <h1>🎵 Strudel AI Live Coding</h1>
-        <p>AI-powered generative music with Strudel</p>
+    <div class="main-container">
+        <div id="strudel-container">
+            <strudel-editor id="strudel-editor">
+            </strudel-editor>
+        </div>
     </div>
 
-    <div class="main-container">
-        <div class="code-panel">
-            <h2>💬 AI Prompt</h2>
-            <div class="prompt-section">
-                <input
-                    type="text"
-                    id="prompt-input"
-                    placeholder="Type a prompt like: add more bass, make it faster..."
-                    onkeypress="handlePromptKeypress(event)">
-                <button class="btn-secondary" onclick="sendPrompt()">🚀 Send Prompt</button>
-            </div>
-
-            <div id="audio-warning">
-                <strong>⚠️ Audio Issue?</strong><br>
-                Make sure to click the Play button and allow audio in your browser.
-                The first play might require user interaction.
-            </div>
-            
-            <div class="info-box">
-                <h3>Welcome to Strudel AI Live Coding!</h3>
-                <p>
-                    This is an interactive music generation tool powered by AI. 
-                    Simply type in a prompt, and the AI will generate music for you.
-                </p>
-                <p>
-                    To get started, type a prompt in the input box above and click "Send Prompt".
-                </p>
-            </div>
-        </div>
-
-        <div class="strudel-panel">
-            <h2>🎹 Strudel Player</h2>
-            <div id="strudel-container">
-                <strudel-editor 
-                    id="strudel-editor">
-                    <!-- Initial code will be injected here -->
-                </strudel-editor>
-            </div>
-            
-            <div class="controls">
-                <button class="btn-primary" onclick="playCode()">▶️ Play</button>
-                <button class="btn-danger" onclick="stopCode()">⏹️ Stop</button>
-            </div>
+    <div class="command-bar">
+        <input
+            type="text"
+            id="prompt-input"
+            placeholder="Type a prompt like: add more bass, make it faster..."
+            onkeypress="handlePromptKeypress(event)">
+        <button class="btn-secondary" onclick="sendPrompt()">🚀 Send</button>
+        <div class="controls">
+            <button class="btn-primary" onclick="playCode()">▶️ Play</button>
+            <button class="btn-danger" onclick="stopCode()">⏹️ Stop</button>
         </div>
     </div>
 
