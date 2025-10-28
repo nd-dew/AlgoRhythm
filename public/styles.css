@@ -14,6 +14,10 @@ body {
     overflow: hidden;
 }
 
+body.playing #strudel-container {
+    animation: heartbeat 1s infinite;
+}
+
 .main-container {
     flex: 1;
     display: flex;
@@ -28,6 +32,8 @@ body {
     background: #161625;
     border-radius: 8px;
     margin: 10px;
+    border: 2px solid transparent;
+    transition: border-color 0.5s ease;
 }
 
 strudel-editor {
@@ -182,8 +188,23 @@ button {
         stroke-dasharray: 90, 150;
         stroke-dashoffset: -35;
     }
+        100% {
+            stroke-dasharray: 90, 150;
+            stroke-dashoffset: -124;
+        }
+    }
+
+@keyframes heartbeat {
+    0% {
+        border-color: transparent;
+        transform: scale(1);
+    }
+    50% {
+        border-color: #f0e68c;
+        transform: scale(0.99);
+    }
     100% {
-        stroke-dasharray: 90, 150;
-        stroke-dashoffset: -124;
+        border-color: transparent;
+        transform: scale(1);
     }
 }

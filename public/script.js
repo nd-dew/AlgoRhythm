@@ -71,11 +71,14 @@ let strudelEditor;
 
         function playCode() {
             strudelEditor.editor.evaluate();
+                document.body.classList.add('playing');
                 isPlaying = true;
         }
 
         function stopCode() {
             strudelEditor.editor.stop();
+            document.body.classList.remove('playing');
+            isPlaying = false;
         }
 
         async function processPrompt(prompt, focusInput = false) {
