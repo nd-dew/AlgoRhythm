@@ -364,7 +364,18 @@
         let lastCode = '';  // Track last code to detect changes
 
         async function updateCode(code) {
-            strudelEditor.editor.setCode(code);
+            // visually flash AI updates
+            const container = document.getElementById('strudel-container');
+            container.style.animation = 'flash 1s ease';
+            setTimeout(() => {
+                container.style.animation = '';
+            }, 1000);
+
+            // update the editor code and optionally play
+            if (strudelEditor && strudelEditor.editor) {
+                strudelEditor.editor.setCode(code);
+            }
+
             if (isPlaying) {
                 setTimeout(() => {
                     playCode();
@@ -385,7 +396,32 @@
         async function sendPrompt() {
             const input = document.getElementById('prompt-input');
             const prompt = input.value.trim();
-            updateCode(prompt);
+            if (!prompt) {
+                alert("Please enter a prompt first.");
+                return;
+            }
+
+            // get current code from the editor
+            const currentCode = strudelEditor.editor.code;
+
+            try {
+                const response = await fetch('/api/prompt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt, code: currentCode })
+                });
+                const data = await response.json();
+
+                if (data.success && data.response) {
+                    await updateCode(data.response);
+                } else {
+                    console.error('Failed to process prompt:', data.error || data);
+                    alert('AI failed to generate response. Check console for details.');
+                }
+            } catch (err) {
+                console.error('Error sending prompt:', err);
+                alert('Failed to connect to backend.');
+            }
         }
 
         function handlePromptKeypress(event) {

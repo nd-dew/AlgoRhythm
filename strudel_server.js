@@ -9,7 +9,7 @@ const path = require('path');
 const fs = require('fs');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
@@ -21,10 +21,6 @@ let currentCode = `// Welcome to Strudel AI Live Coding
 // Waiting for AI to generate code...
 
 s("bd sd").fast(2)`;
-
-// Store prompts from web interface
-let promptQueue = [];
-let currentPrompt = null;
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -57,50 +53,65 @@ app.post('/update', (req, res) => {
     });
 });
 
-// Submit prompt from web interface
-app.post('/prompt', (req, res) => {
-    const { prompt } = req.body;
-    
-    if (!prompt || prompt.trim() === '') {
-        return res.status(400).json({ error: 'Prompt is required' });
-    }
-    
-    promptQueue.push({
-        prompt: prompt.trim(),
-        timestamp: new Date().toISOString()
-    });
-    
-    console.log(`\n💬 New prompt received from web: "${prompt.trim()}"`);
-    console.log(`📊 Queue length: ${promptQueue.length}`);
-    
-    res.json({ 
-        success: true, 
-        message: 'Prompt received',
-        queueLength: promptQueue.length
-    });
-});
-
-// Get next prompt (for Python agent to poll)
-app.get('/get-prompt', (req, res) => {
-    if (promptQueue.length > 0) {
-        currentPrompt = promptQueue.shift();
-        console.log(`\n📤 Sending prompt to agent: "${currentPrompt.prompt}"`);
-        res.json({ 
-            hasPrompt: true,
-            prompt: currentPrompt.prompt,
-            timestamp: currentPrompt.timestamp
-        });
-    } else {
-        res.json({ 
-            hasPrompt: false 
-        });
-    }
-});
-
 // Serve the main HTML page
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
+
+// --- Vertex AI (Gemini) Integration using Application Default Credentials ---
+const { VertexAI } = require('@google-cloud/vertexai');
+
+// Initialize VertexAI
+const vertex_ai = new VertexAI({ project: 'qwiklabs-gcp-00-acb9fdb9ec26', location: 'us-central1' });
+const model = 'gemini-2.5-flash'; // Or another model you want to use
+
+const generativeModel = vertex_ai.getGenerativeModel({
+    model: model,
+});
+
+app.post('/api/prompt', async (req, res) => {
+    const { prompt, code } = req.body;
+
+    if (!prompt) {
+        return res.status(400).json({ error: 'Prompt is required' });
+    }
+
+    if (!code) {
+        return res.status(400).json({ error: 'Code is required' });
+    }
+
+    try {
+        const preprompt = fs.readFileSync('./strudel_preprompt.txt', 'utf-8');
+        const fullPrompt = `${preprompt}\n\n---\n\nHere is the current code:\n\n\`\`\`javascript\n${code}\n\`\`\`\n\n---\n\nUser Prompt: ${prompt}`;
+
+        const req = {
+            contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
+        };
+
+        const streamingResp = await generativeModel.generateContentStream(req);
+        const aggregatedResponse = await streamingResp.response;
+        const text = aggregatedResponse.candidates[0].content.parts[0].text;
+
+        console.log('🤖 AI Response:', text);
+
+        try {
+            // Validate the generated code
+            // transpile(text);
+            console.log('✅ AI response is valid Strudel code');
+            currentCode = text; // Update the current code
+            res.json({ success: true, message: "Prompt processed successfully", response: text });
+        } catch (validationError) {
+            console.error('❌ AI response is invalid Strudel code:', validationError.message);
+            res.json({ success: false, error: 'Invalid Strudel code generated', details: validationError.message });
+        }
+
+    } catch (error) {
+        console.error('❌ Error calling Vertex AI:', error);
+        res.status(500).json({ error: 'Failed to call AI model' });
+    }
+});
+
+
 
 // Start server
 app.listen(PORT, () => {
@@ -111,15 +122,12 @@ app.listen(PORT, () => {
 ╚════════════════════════════════════════════════╝
 
 Endpoints:
-  GET  /health      - Health check
-  GET  /code        - Get current code
-  POST /update      - Update code
-  POST /prompt      - Submit AI prompt (from web)
-  GET  /get-prompt  - Get next prompt (for AI agent)
-  GET  /            - Web interface
+  GET  /health  - Health check
+  GET  /code    - Get current code
+  POST /update  - Update code
+  GET  /        - Web interface
 
 Open http://localhost:${PORT} in your browser to see the live coding interface!
-You can now send prompts from the web interface! 🎉
     `);
 });
 
