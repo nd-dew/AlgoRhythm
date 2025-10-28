@@ -6,51 +6,12 @@
 
 ## 🎯 Elevator Pitch
 
-Team16 is your personal AI band of coders that doesn’t just write code — it **composes intelligent systems**.  
-It brings **real-time collaboration**, **smart generation**, and **interactive playback** together, turning development into a masterpiece.
-
-💡 Think of it as *your favorite IDE jamming with Artificial Intelligence*.
+Team16 is your personal AI band that writes your strudel.cc code automatcally for you. Simply prompt your ideas and the model will send you an updated strudel.cc code. you can also start from your base code and make it evolve from there.
 
 ---
-
-## 🎬 Visual Demo
-
-> _(Insert GIF or screenshot here to make jaws drop)_
-
-![Demo Placeholder](https://via.placeholder.com/800x400.png?text=Team16+in+Action)
-
----
-
-## ⚡ Core Features
-
-- 🤖 **AI-Powered Code Generation** – Write natural prompts, get clean structured code instantly.  
-- 🔁 **Real-Time Playback** – Watch your session evolve like a live performance.  
-- 🪄 **Autonomous Refactoring** – Intelligent refactor suggestions while coding.  
-- 💬 **Reactive Frontend Layer** – Delivers fluid real-time updates across sessions.  
-- ☁️ **Seamless Cloud Sync** – Forget configs — it just works from anywhere.
-
----
-
-## 🧠 Tech Stack
-
-Built with a symphony of modern technologies:
-
-| Category | Technologies |`
-|-----------|---------------|
-| **Frontend** | ![HTML5](https://skillicons.dev/icons?i=html) ![CSS3](https://skillicons.dev/icons?i=css) ![JavaScript](https://skillicons.dev/icons?i=js) |
-| **Backend** | ![Node.js](https://skillicons.dev/icons?i=nodejs) |
-| **AI Layer** | ![Python](https://skillicons.dev/icons?i=python) |
-| **Cloud** | ![Docker](https://skillicons.dev/icons?i=docker) ![Google Cloud](https://skillicons.dev/icons?i=gcp) |
-| **Version Control** | ![GitHub](https://skillicons.dev/icons?i=github) |
-
----
-
-## 🏁 Getting Started
 
 ### Prerequisites
 - Node.js `v18+`
-- Python `3.10+`
-- Docker (optional but recommended)
 
 ### Setup
 
@@ -63,37 +24,13 @@ cd team16
 npm install
 
 # Run the development server
-npm run dev
+npm start
 ```
+The app should now be running at **http://localhost:3000** 🎸
 
-The app should now be available at **http://localhost:3000** 🎸
 
----
+## ❤️ Made by Team16 - Odoopsie
 
-## ☁️ Deploying to Google Cloud Run
-
-1. **Build the Docker image:**
-   ```bash
-   docker build -t team16-app .
-   ```
-
-2. **Push to Google Container Registry:**
-   ```bash
-   gcloud builds submit --tag gcr.io/YOUR_PROJECT_ID/team16-app
-   ```
-
-3. **Deploy to Cloud Run:**
-   ```bash
-   gcloud run deploy team16 --image gcr.io/YOUR_PROJECT_ID/team16-app --platform managed --region europe-west1
-   ```
-
-4. **Done!**  
-   Visit the provided URL and witness the magic live ✨
-
----
-
-## ❤️ Made by Team16
-
-Where code meets creativity, powered by caffeine and cosmic energy ☕🌌
+Google AI Labs 2025 Rotterdam
 
 ---
