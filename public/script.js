@@ -13,6 +13,13 @@ let strudelEditor;
                 historyContainer.classList.toggle('hidden');
             });
 
+            document.querySelectorAll('.btn-quick-prompt').forEach(button => {
+                button.addEventListener('click', () => {
+                    const promptText = button.textContent; // Get text like "Make it faster"
+                    processPrompt(promptText, false); // Call the core function, don't focus input
+                });
+            });
+
             // Wait for Strudel to fully load - check multiple times
             let checkCount = 0;
             const maxChecks = 10;
@@ -69,6 +76,56 @@ let strudelEditor;
 
         function stopCode() {
             strudelEditor.editor.stop();
+        }
+
+        async function processPrompt(prompt, focusInput = false) {
+            const input = document.getElementById('prompt-input');
+            const sendButton = document.getElementById('send-button');
+
+            if (!prompt) {
+                alert("Prompt is empty.");
+                return;
+            }
+
+            // get current code from the editor
+            let currentCode = strudelEditor.editor.code;
+
+            if (!currentCode.trim()) {
+                currentCode = "There is no code yet. Please start a new piece of music.";
+            }
+
+            sendButton.classList.add('loading');
+            sendButton.disabled = true;
+            input.disabled = true;
+
+            try {
+                const response = await fetch('/api/prompt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt, code: currentCode })
+                });
+                const data = await response.json();
+
+                if (data.success && data.response) {
+                    await updateCode(data.response);
+                    history.push({ prompt, code: data.response });
+                    renderHistory();
+                    updateLastPrompt(prompt);
+                } else {
+                    console.error('Failed to process prompt:', data.error || data);
+                    alert('AI failed to generate response. Check console for details.');
+                }
+            } catch (err) {
+                console.error('Error sending prompt:', err);
+                alert('Failed to connect to backend.');
+            } finally {
+                sendButton.classList.remove('loading');
+                sendButton.disabled = false;
+                input.disabled = false;
+                if (focusInput) {
+                    input.focus(); // Only focus if the main input was used
+                }
+            }
         }
 
         async function sendPrompt() {
