@@ -1,4 +1,4 @@
-# 🚀 Team16 — Next-Gen AI Coding Experience [![Live Demo](https://img.shields.io/badge/demo-online-brightgreen)](https://team16-demo.app)
+# 🚀 AlgoRhythm — Next-Gen AI Sound Coding Experience 
 
 > Because AI should **not just code** — it should **groove while doing it** 🎵
 
@@ -6,7 +6,7 @@
 
 ## 🎯 Elevator Pitch
 
-Team16 is your personal AI band that writes your strudel.cc code automatcally for you. Simply prompt your ideas and the model will send you an updated strudel.cc code. you can also start from your base code and make it evolve from there.
+AlgoRhythm is your personal AI band that writes your strudel.cc code automatcally for you. Simply prompt your ideas and the model will send you an updated strudel.cc code. you can also start from your base code and make it evolve from there.
 
 ---
 
@@ -16,8 +16,8 @@ Team16 is your personal AI band that writes your strudel.cc code automatcally fo
 ### Setup
 
 ```bash
-# Clone the repo
-git clone https://github.com/yourusername/team16.git
+# Clone the repoAlgoRhythm
+git clone https://github.com/nd-dew/.git
 cd team16
 
 # Install dependencies
